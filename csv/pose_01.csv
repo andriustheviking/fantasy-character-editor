@@ -1,8 +1,8 @@
-type,slot,pose,version,name,drawOrder,optional,x,y,w,h,fileName
-body,front arm,neutral1,male1,Front Arm,6,0,364,234,122,257,body frontarm 01.png
-body,face,neutral1,male1,Face 1,4,0,307,144,66,90,body face01.png
-body,loincloth,neutral1,male1,Loin Cloth,2,1,276,415,135,102,loincloth.png
-body,head,neutral1,male1,Head,3,0,307,120,80,114,body head 01.png
-body,body,neutral1,male1,Body,1,0,211,178,290,656,body body 01.png
-body,back hand,neutral1,male1,Back Hand,5,0,153,331,61,67,body back hand 01.png
-body,back arm,neutral1,male1,Back Arm,0,0,188,233,160,162,body back arm 01.png
+type,slot,pose,version,name,drawOrder,optional,x,y,w,h,hue,sat,lum,location
+body,front arm,neutral1,male1,Front Arm,6,0,364,234,122,257,0,50,50,assets/body_pose_01/body_frontarm 01.png
+body,face,neutral1,male1,Face 1,4,0,307,144,66,90,0,50,50,assets/body_pose_01/body_face01.png
+body,loincloth,neutral1,male1,Loin Cloth,2,1,276,415,135,102,0,50,50,assets/body_pose_01/loincloth.png
+body,head,neutral1,male1,Head,3,0,307,120,80,114,0,50,50,assets/body_pose_01/body_head 01.png
+body,body,neutral1,male1,Body,1,0,211,178,290,656,0,50,50,assets/body_pose_01/body_body 01.png
+body,back hand,neutral1,male1,Back Hand,5,0,153,331,61,67,0,50,50,assets/body_pose_01/body_back hand 01.png
+body,back arm,neutral1,male1,Back Arm,0,0,188,233,160,162,0,50,50,assets/body_pose_01/body_back arm 01.png
