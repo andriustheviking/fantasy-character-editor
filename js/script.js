@@ -1,6 +1,8 @@
+//for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
+
 $(document).ready( function(){
 
-	var arr;
+	var arr = [];
 
 	$.ajax ({
 		type: "GET",
@@ -10,7 +12,7 @@ $(document).ready( function(){
 
 			arr = csvToObj(data);
 
-			var s;
+			var s = "";
 
 			for(var i = 0; i < arr.length; i++){			
 				s += "<option value=\" " + i +" \">" + arr[i].name + "</option>"; 				
@@ -18,11 +20,14 @@ $(document).ready( function(){
 
 			$('#selector').html(s);
 
-			updateOutput(arr);
+		
+			getImageData(a);
+		
+			updateOutput(a);			
+		
+			drawCharacter(a);
 
-			getImageData(arr);
-			
-			drawCharacter(arr);
+
 		}
 	});
 
@@ -67,14 +72,19 @@ function updateOutput(a){
 
 	var n = $('#selector').val();
 
-	$('#hueslide').val(a[n].hue);
-	$('#huetext').val(a[n].hue);
-	$('#satslide').val(a[n].sat);
-	$('#sattext').val(a[n].sat);
-	$('#lumslide').val(a[n].lum);
-	$('#lumtext').val(a[n].lum);
+	console.log(n);
+	console.log(a);
+	console.log(a[0]);
+	console.log(a[n]);
 
-};
+	$('#hueslide').val( a[n].hue );
+	$('#huetext').val( a[n].hue );
+	$('#satslide').val( a[n].sat );
+	$('#sattext').val( a[n].sat );
+	$('#lumslide').val( a[n].lum );
+	$('#lumtext').val( a[n].lum );
+
+}
 
 
 function getImageData (arr){
@@ -113,18 +123,6 @@ function getImageData (arr){
 	}
 }
 
-function drawCharacter(a){
-
-	var n = $('#selector').val();
-
-	$('#hueslide').val(a[n].h);
-	$('#huetext').val(a[n].h);
-	$('#satslide').val(a[n].s);
-	$('#sattext').val(a[n].s);
-	$('#lumslide').val(a[n].l);
-	$('#lumtext').val(a[n].l);
-
-};
 
 function storeAssets(a){
 
