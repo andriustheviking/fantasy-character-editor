@@ -1,0 +1,15 @@
+body{
+
+}
+
+#canvas {
+	height: 100vh;
+}
+
+#character, #interface{
+	float: left;
+}
+
+.textbox{
+	width: 30px;
+}
