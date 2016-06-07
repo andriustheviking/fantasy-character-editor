@@ -1,12 +1,16 @@
 //for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
-//for windows: C:\Program Files (x86)\Google\Chrome\Application>chrome.exe --allow-file-access-from-files --disable-web-security
+//for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
 $(document).ready( function(){
 
 	var arr = [];
 
+	var n;
+
+	var classList
+
 	$.ajax ({
 		type: "GET",
-		url: "./csv/pose_01.csv",
+		url: "./csv/body_pose_01.csv",
 		dataType: "text",
 		success: function(data) { 
 
@@ -15,28 +19,140 @@ $(document).ready( function(){
 			var s = "";
 
 			for(var i = 0; i < arr.length; i++){			
-				s += "<option value=\" " + i +" \">" + arr[i].name + "</option>"; 				
+				s += "<option value=\"" + i +"\">" + arr[i].name + "</option>"; 				
 			}	
 
 			$('#selector').html(s);
+
+			n = parseInt($('#selector').val());		
+
+			getImageData(arr,drawCharacter);
 		
-			getImageData(arr);
-		
-			updateOutput(arr);			
+			updateOutput(arr,n);			
 
-			drawCharacter(arr);
+		}
+	});
 
+	$.ajax({
+		type: "GET",
+		url: "./csv/asset_classes.csv",
+		dataType: "text",
+		success: function(data) {
 
+			classList = parseClasses(data);
+
+			console.log(classList);
 		}
 	});
 
 	//if selector is changed, update sliders and text
 	$("#selector").change(function(){
-		updateOutput(arr);
+		n = parseInt($('#selector').val());	
+		updateOutput(arr,n);
 	});
+
+	//if slider is changed update array hsl values and redraw
+	$('input[type=range]').change(function(){
+
+		n = parseInt($('#selector').val());	
+
+		//update values in user array
+		arr[n].hue = $("#hueslide").val();
+		arr[n].sat = $("#satslide").val();
+		arr[n].lum = $("#lumslide").val();
+
+		updateOutput(arr,n);
+
+		drawCharacter(arr); //draw character using user array
+
+	});   
+
+	//manual hsl input update array hsl values and redraw
+	$('input[type=text]').change(function(){
+
+		n = parseInt($('#selector').val());
+
+		//update values in user array
+		arr[n].hue = $("#huetext").val();
+		arr[n].sat = $("#sattext").val();
+		arr[n].lum = $("#lumtext").val();
+
+		updateOutput(arr,n);
+
+		drawCharacter(arr); //draw character using user array
+
+	});    
+
+	//clickable selectivity
+		var canvas = document.getElementById('canvas'),
+		    canLeft = canvas.offsetLeft,
+		    canTop = canvas.offsetTop;
+
+		    canvas.addEventListener('click', function(event){
+		    	var x = event.pageX - canLeft,
+		    	y = event.pageY - canTop;
+
+		    	//adjust for responsive height
+		    	x = Math.floor(x * canvas.width / $('#canvas').width());
+		    	y = Math.floor(y * canvas.height / $('#canvas').height());
+
+			for(var l = arr.length, i = l - 1; i >= 0; i--){
+
+				if( x >= arr[i].x &&
+					x <= arr[i].x + arr[i].w &&
+					y >= arr[i].y &&
+					y <= arr[i].y + arr[i].h ) {
+
+					if( arr[i].img.data[4 *(x - arr[i].x + arr[i].w * (y - arr[i].y)) + 3] ) { //if pixel alpha 
+
+						$('#selector').val(i);
+						updateOutput(arr, i);
+						break;
+					}
+				}				
+			}
+
+
+		});
 
 });
 
+function parseClasses (text){ //returns an object {classname = {h,s,l,list}}
+
+	//split up csv lines into array
+	var textLines = text.split(/\r\n|\n/);
+
+	var obj = {};
+
+	for (var i = 0, l = textLines.length; i < l; i++) {
+
+		//split up textline array into array of csv values
+		var a = textLines[i].split(',');
+
+
+		if(a[0]) { //the if a[0] prevents adding empty slots
+
+			//store the class header as object inside object
+			obj[a[0]] = {};
+
+			obj[a[0]].h = a[1]
+			obj[a[0]].s = a[2]
+			obj[a[0]].l = a[3]
+
+			obj[a[i]].list = []
+
+			//push the class items into object array
+			for(var j = 4, ll = a.length; j < ll; j++) {
+				
+				obj[a[0]].list.push(a[j]);
+			}
+		}
+
+	}
+
+	return obj;
+
+}
 
 function csvToObj(text) {
 
@@ -46,14 +162,21 @@ function csvToObj(text) {
 
 	var arr = [];
 
-	for (var i = 1; i < textLines.length; i++) {
+	for (var i = 1, len = textLines.length; i < len; i++) {
 		
 		var lineArr = textLines[i].split(',');
 
 		var obj = {};
 		
-		for (var j = 0; j < headers.length; j++){		
-			obj[headers[j]] = lineArr[j];
+		for (var j = 0, jlen = headers.length; j < jlen; j++){		
+
+			//we need parse numbers for only number strings
+			if( isNaN(lineArr[j]) ){
+				obj[headers[j]] = lineArr[j];
+			}
+			else {
+				obj[headers[j]] = parseFloat(lineArr[j]);
+			}
 		}
 
 		//prevent adding empty object
@@ -69,10 +192,6 @@ function csvToObj(text) {
 
 function updateOutput(a,n){
 
-		var n = $('#selector').val();
-
-		n = parseInt(n);
-
 		$('#hueslide').val( a[n].hue );
 		$('#huetext').val( a[n].hue );
 		$('#satslide').val( a[n].sat );
@@ -83,7 +202,7 @@ function updateOutput(a,n){
 }
 
 
-function getImageData (arr){
+function getImageData (arr, callback){
 
 	var img = []; //array to store image elements
 
@@ -93,11 +212,14 @@ function getImageData (arr){
 
 	var ctx = canvas.getContext('2d');
 
+	//need counter due to asynch loading
+	var counter = 0;
+
 	//iterate though dropbox links and fill arr with image data using canvas
 	for (var i = 0, l = arr.length; i < l; i++) {
 
 	//anonymous function to fix sync issue
-		(function(j){
+		(function(j,l){
 
 			//create image element
 			img[j] = new Image();
@@ -114,8 +236,14 @@ function getImageData (arr){
 				//clear canvas
 				ctx.clearRect( 0, 0, arr[j].w, arr[j].h);
 
+				counter++;
+			
+				//after images load, run callback function
+				if(counter == l){
+					callback(arr);
+				}
 			};
-		})(i);
+		})(i,l);
 	}
 }
 
@@ -133,152 +261,67 @@ function drawCharacter(a){
 
 	var	c_w = canvas.width;
 
-	console.log(a);
-
 	//for each layer in array
 	for (var n = 0, layers = a.length; n < layers; n++) {
 
-		var y = a[n].y,  
-			x = a[n].x,  
+		var y = parseInt(a[n].y),  
+			x = parseInt(a[n].x),  
 			w = a[n].w, 
 			h = a[n].h;
 
-		//iterate down for each row of pixels, starting at pixel position y, ending at y + h
-		for(var i = y; i < y + h; i++) {
+		//iterate for each row of pixels for the height of asset
+		for(var i = 0; i < h; i++) {
 
-//NEED TO FIX HERE - CHANGE j start at 0 and end at w * 4, fix the rest accordingly
+			//iterate across width of asset (w)
+			for (var j = 0; j < w; j++) {
+				
+				//determine the pixel position for asset p_a multiplied by 4 bytes per pixel (aka rgba)
+				var	p_a = 4 * (w * i + j);
 
-			//iterate starting at pixel number x + y * canv width, all multiplied by 4 (32 bits per pixel)
-			for (var j = 4 * (x + c_w*y), end = 4 * (w + x + c_w * y);  j < end; j += 4) {
-
-				//if new pixel is opaque, we replace old pixel data with new
-				if ( a[n].img.data[j + 3] == 255){
+				
+				//if asset pixel (j) has alpha > 0, then we need to add it to canvas
+				if ( a[n].img.data[p_a + 3] > 0){
 
 					//break up rgb to hsl, so we can manipulate color
-					var hsl = rgbToHsl( a[n].img.data[j + 0], a[n].img.data[j + 1], a[n].img.data[j + 2]);
+					var hsl = rgbToHsl( a[n].img.data[p_a + 0], a[n].img.data[p_a + 1], a[n].img.data[p_a + 2]);
 
-					//add in hue and sat values stored in array
+					//add in hue and sat values stored in array, adjust lum value using lumChange
 					hsl.h = a[n].hue / 360;
 					hsl.s = a[n].sat / 100;
 					hsl.l = lumChange(hsl.l, a[n].lum / 50);
 
 					//get new rgb value
 					var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+				
+					//determine the pixel position for canvas p_c multiplied by 4 bytes per pixel (aka rgba)
+					var p_c = 4 * (x + c_w * (i + y) + j); 
 
-					data[j + 0] = newRgb.r; //red
-					data[j + 1] = newRgb.g; //green
-					data[j + 2] = newRgb.b; //blue
-					data[j + 3] = 255; // alpha
+					//if asset pixel is opaque, we simply replace canvas pixel value with new values
+					if ( a[n].img.data[p_a + 3] == 255){
+
+						data[p_c + 0] = newRgb.r; //red
+						data[p_c + 1] = newRgb.g; //green
+						data[p_c + 2] = newRgb.b; //blue
+						data[p_c + 3] = 255; // alpha
+					}
+					//else, we need to combine canvas pixel with asset pixel using linear blend: equation from http://stackoverflow.com/questions/7438263/alpha-compositing-algorithm-blend-modes
+					else {
+						var d_a = data[p_c + 3] / 255, 
+						a_a = a[n].img.data[p_a + 3] / 255,
+						final_a = a_a + d_a - a_a * d_a; 
+
+						//linear blend
+						data[p_c + 0] = (newRgb.r * a_a + data[p_c + 0] * d_a * (1 - a_a)) / (final_a);
+						data[p_c + 1] = (newRgb.g * a_a + data[p_c + 1] * d_a * (1 - a_a)) / (final_a);
+						data[p_c + 2] = (newRgb.b * a_a + data[p_c + 2] * d_a * (1 - a_a)) / (final_a);
+
+						data[p_c + 3] = final_a * 255; // alpha
+
+					}
 				}
-				//else if pixel alpha is slightly transparent. equation from http://stackoverflow.com/questions/7438263/alpha-compositing-algorithm-blend-modes
-				else if( a[n].img.data[j + 3] > 0) {
-
-					//break up rgb to hsl, so we can manipulate color
-					var hsl = rgbToHsl( a[n].img.data[j + 0], a[n].img.data[j + 1], a[n].img.data[j + 2]);
-
-					//add in h and s from values stored in array
-					hsl.h = a[n].hue / 360;
-					hsl.s = a[n].sat / 100;
-					hsl.l = lumChange(hsl.l, a[n].lum / 50);
-
-					//get new rgb value
-					var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
-
-					var d_a = data[j + 3] / 255, 
-					a_a = a[n].img.data[j + 3] / 255,
-					final_a = a_a + d_a - a_a * d_a; 
-
-					//linear blend
-					data[j + 0] = (newRgb.r * a_a + data[j + 0] * d_a * (1 - a_a)) / (final_a);
-					data[j + 1] = (newRgb.g * a_a + data[j + 1] * d_a * (1 - a_a)) / (final_a);
-					data[j + 2] = (newRgb.b * a_a + data[j + 2] * d_a * (1 - a_a)) / (final_a);
-
-					data[j + 3] = final_a * 255; // alpha
-
-				}
-
 			}
 		}
-
 	}
-
-	//paint new image onto canvas
-	ctx.putImageData(imgData, 0,0);
-}
-
-function storeAssets(a){
-
-	var canvas = document.getElementById('canvas');
-
-	var ctx = canvas.getContext('2d');
-
-	ctx.clearRect(0,0, canvas.width, canvas.height);
-
-	// multiply number of pixels in canvas by 4 (rgba)
-	var len = 4 * (canvas.width * canvas.height);
-
-	console.log(len);
-
-	var imgData = ctx.getImageData(0,0, canvas.width, canvas.height);
-
-	var data = imgData.data;
-
-	//iterate for each pixel in canvas
-	for (var j = 0; j < 6; j++) {
-
-		//iterate through each array for that pixel
-		for (var i = 0; i < len; i += 4) {
-
-			//if pixel is opaque, just overright data
-			if ( a[j].img.data[i + 3] == 255){
-
-				//break up rgb to hsl, so we can manipulate color
-				var hsl = rgbToHsl( a[j].img.data[i + 0], a[j].img.data[i + 1], a[j].img.data[i + 2]);
-
-				//add in h and s from values stored in array
-				hsl.h = a[j].h / 360;
-				hsl.s = a[j].s / 100;
-				hsl.l = lumChange(hsl.l, a[j].l / 50);
-
-				//get new rgb value
-				var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
-
-				data[i + 0] = newRgb.r; //red
-				data[i + 1] = newRgb.g; //green
-				data[i + 2] = newRgb.b; //blue
-				data[i + 3] = 255; // alpha
-			}
-			//if pixel alpha is slightly transparent. equation from http://stackoverflow.com/questions/7438263/alpha-compositing-algorithm-blend-modes
-			else if( a[j].img.data[i + 3] > 0) {
-
-				//break up rgb to hsl, so we can manipulate color
-				var hsl = rgbToHsl( a[j].img.data[i + 0], a[j].img.data[i + 1], a[j].img.data[i + 2]);
-
-				//add in h and s from values stored in array
-				hsl.h = a[j].h / 360;
-				hsl.s = a[j].s / 100;
-				hsl.l = lumChange(hsl.l, a[j].l / 50);
-
-				//get new rgb value
-				var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
-
-				var d_a = data[i + 3] / 255, 
-				a_a = a[j].img.data[i + 3] / 255,
-				final_a = a_a + d_a - a_a * d_a; 
-
-				//liner blend
-				data[i + 0] = (newRgb.r * a_a + data[i + 0] * d_a * (1 - a_a)) / (final_a);
-				data[i + 1] = (newRgb.g * a_a + data[i + 1] * d_a * (1 - a_a)) / (final_a);
-				data[i + 2] = (newRgb.b * a_a + data[i + 2] * d_a * (1 - a_a)) / (final_a);
-
-				data[i + 3] = final_a * 255; // alpha
-
-			}
-
-		}
-
-	}
-
 	//paint new image onto canvas
 	ctx.putImageData(imgData, 0,0);
 }
