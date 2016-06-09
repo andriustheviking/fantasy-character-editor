@@ -6,7 +6,7 @@ $(document).ready( function(){
 
 	var n;
 
-	var groupArray; // array 
+	var groupArray = []; // array 
 
 	var selOptions = []; //array to store selector options
 
@@ -14,7 +14,7 @@ $(document).ready( function(){
 
 	$.ajax ({
 		type: "GET",
-		url: "./csv/body_pose_01.csv",
+		url: "./csv/humanmale_pose_01.csv",
 		dataType: "text",
 		success: function(data) { 
 
@@ -86,6 +86,7 @@ $(document).ready( function(){
 
 	});
 
+	//when apply button is pressed, apply skin group to assets then hide button
 	$('#applygroup').click( function(){
 
 		if( $("#selector option:selected").hasClass("bodygroup")) {
@@ -93,18 +94,11 @@ $(document).ready( function(){
 			n = $("#selector option:selected").val();
 		}
 
-		for(var x in assetArray){
-
-			if( arrayRef[n].list.indexOf(assetArray[x].slot) != -1){ //if the slot name exists in group list, then change values
-				
-				assetArray[x].hue = arrayRef[n].hue;
-				assetArray[x].sat = arrayRef[n].sat;
-				assetArray[x].lum = arrayRef[n].lum;
-
-			}
-		}
+		applyGroupHsl(arrayRef, assetArray,n);
 
 		drawCharacter(assetArray)
+
+		$("#applygroup").hide(); //hide apply button
 
 	});
 
@@ -121,6 +115,11 @@ $(document).ready( function(){
 		updateOutput(arrayRef,n);
 
 		if( arrayRef == assetArray){
+			drawCharacter(assetArray); //draw character using user array
+		}
+		else if (arrayRef == groupArray && $('#applygroup').css('display') == 'none'){
+			console.log('here');
+			applyGroupHsl(arrayRef, assetArray,n);
 			drawCharacter(assetArray); //draw character using user array
 		}
 
@@ -140,6 +139,11 @@ $(document).ready( function(){
 		updateOutput(arrayRef,n);
 
 		if( arrayRef == assetArray){
+			drawCharacter(assetArray); //draw character using user array
+		}
+		else if (arrayRef == groupArray && $('#applygroup').css('display') == 'none'){
+			console.log('here');
+			applyGroupHsl(arrayRef, assetArray,n);
 			drawCharacter(assetArray); //draw character using user array
 		}
 
@@ -183,6 +187,19 @@ $(document).ready( function(){
 
 });
 
+function applyGroupHsl (reference, assets, n){ //applies index n of reference array hsl to asset array
+
+	for(var x in assets){
+
+		if( reference[n].list.indexOf(assets[x].slot) != -1){ //if the slot name exists in group list, then change values
+			
+			assets[x].hue = reference[n].hue;
+			assets[x].sat = reference[n].sat;
+			assets[x].lum = reference[n].lum;
+		}
+	}
+}
+
 function insertOptions(idString, arr){ //insert options into element specified by id
 
 	var s = "";
@@ -195,7 +212,6 @@ function insertOptions(idString, arr){ //insert options into element specified b
 	}
 
 	$(idString).html(s);
-
 }
 
 function parseGroups (text){ //returns an array of objects {groupName,h,s,l,list}
@@ -227,11 +243,8 @@ function parseGroups (text){ //returns an array of objects {groupName,h,s,l,list
 				arr[a[0]].list.push(a[j]);
 			}
 		}
-
 	}
-
 	return arr;
-
 }
 
 function csvToObj(text) {
@@ -264,9 +277,7 @@ function csvToObj(text) {
 			arr[obj.drawOrder] = obj;
 		}
 	}
-
 	return arr;
-
 }
 
 
@@ -278,7 +289,6 @@ function updateOutput(a,n){
 		$('#sattext').val( a[n].sat );
 		$('#lumslide').val( a[n].lum );
 		$('#lumtext').val( a[n].lum );
-
 }
 
 
