@@ -6,4 +6,15 @@ hm00004,underwear,loincloth,neutral1,male1,Loin Cloth,hm00001,hm00001,above,1,1,
 hm00005,body,head,neutral1,male1,Head,hm00001,hm00001,above,2,1,0,306,121,80,105,34,42,60,assets/body_pose_01,body_head_01.png
 hm00006,body,back hand,neutral1,male1,Back Hand,hm00006,hm00006,above,0,1,0,153,331,61,67,34,42,60,assets/body_pose_01,body_back_hand_01.png
 hm00007,body,back arm,neutral1,male1,Back Arm,hm00001,hm00001,below,0,1,0,188,233,135,155,34,42,60,assets/body_pose_01,body_back_arm_01.png
-hm00008,chainmail,front arm underarmor,neutral1,male1,Front Arm Mail,hm00002,hm00002,above,0,1,0,404,236,82,199,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png
+hm00008,underarmor,front arm underarmor,neutral1,male1,Front Arm Mail,hm00002,hm00002,above,0,0,1,404,236,82,199,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png
+hm00009,underarmor,chest underarmor,neutral1,male1,Chest Mail,hm00001,hm00001,above,0,0,1,276,219,161,231,0,50,50,assets/armor_pose_01,chainmail_chest_01.png
+hm00010,underarmor,skirt underarmor,neutral1,male1,Mail Skirt,hm00001,hm00001,above,0,0,1,257,427,182,130,0,50,50,assets/armor_pose_01,chainmail_skirt_01.png
+hm00011,underarmor,back arm underarmor,neutral1,male1,Back Arm Mail,hm00007,hm00007,above,0,0,1,198,235,122,151,0,50,50,assets/armor_pose_01,chainmail_backarm_01.png
+hm00012,boot,back foot boot,neutral1,male1,Leather Shoe Back,hm00001,hm00001,above,0,0,1,207,635,146,197,0,50,50,assets/armor_pose_01,leather_backfoot_01.png
+hm00013,boot,front foot boot,neutral1,male1,Leather Shoe Front,hm00001,hm00001,above,0,0,1,401,618,102,218,0,50,50,assets/armor_pose_01,leather_frontfoot_01.png
+hm00014,trim,back foot boot trim,neutral1,male1,Back Shoe Trim,hm00012,hm00012,above,0,0,1,275,626,80,43,0,50,50,assets/armor_pose_01,leather_backfoottrim_01.png
+hm00015,trim,front foot boot trim,neutral1,male1,Front Shoe Trim,hm00013,hm00013,above,0,0,1,396,610,72,56,0,50,50,assets/armor_pose_01,leather_frontfoottrim_01.png
+hm00016,underarmor,pants,neutral1,male1,Cloth Pants,hm00001,hm00001,above,0,0,1,259,411,229,373,0,50,50,assets/armor_pose_01,cloth_pants_01.png
+hm00017,underarmor,front arm underarmor,neutral1,male1,Front Arm Cloth,hm00002,hm00002,above,0,0,1,404,237,84,198,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png
+hm00018,underarmor,back arm underarmor,neutral1,male1,Back Arm Cloth,hm00007,hm00007,above,0,0,1,200,235,120,151,0,50,50,assets/armor_pose_01,cloth_backarm_01.png
+hm00019,underarmor,chest underarmor,neutral1,male1,Chest Cloth,hm00001,hm00001,above,0,0,1,276,219,161,231,0,50,50,assets/armor_pose_01,cloth_chest_01.png
