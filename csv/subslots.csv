@@ -1,0 +1,24 @@
+parent,order,slotName
+cape,0,capebase
+tail,0,tailbase
+back arm,0,skin
+back arm,1,underarmor
+body,0,skin
+body,1,pants
+body,2,chest
+body,3,skirt
+back hand,0,skin
+back hand,1,underarmor
+head,0,helmetinterior
+head,1,skin
+head,2,eyes
+head,3,pupils
+head,4,beard
+head,5,mustache
+head,6,hair
+head,7,helmetexterior
+head,8,mask
+hood,0,hoodinterior
+hood,1,hoodexterior
+front arm,0,skin
+front arm,1,underarmor
