@@ -1,0 +1,9 @@
+id,type,category,pose,version,name,parent,placement,layering,drawOrder,equipped,optional,x,y,w,h,hue,sat,lum,location,filename
+hm00001,body,body base,neutral1,male1,Body,,,,,1,0,211,178,290,656,34,42,60,assets/body_pose_01,body_body_01.png
+hm00002,body,front arm,neutral1,male1,Front Arm,hm00001,hm00001,above,3,1,0,363,235,123,257,34,42,60,assets/body_pose_01,body_frontarm_01.png
+hm00003,body,face,neutral1,male1,Face 1,hm00005,hm00005,above,0,1,0,307,144,66,90,34,42,60,assets/body_pose_01,body_face01.png
+hm00004,underwear,loincloth,neutral1,male1,Loin Cloth,hm00001,hm00001,above,1,1,1,276,415,135,102,200,50,50,assets/body_pose_01,loincloth.png
+hm00005,body,head,neutral1,male1,Head,hm00001,hm00001,above,2,1,0,306,121,80,105,34,42,60,assets/body_pose_01,body_head_01.png
+hm00006,body,back hand,neutral1,male1,Back Hand,hm00006,hm00006,above,0,1,0,153,331,61,67,34,42,60,assets/body_pose_01,body_back_hand_01.png
+hm00007,body,back arm,neutral1,male1,Back Arm,hm00001,hm00001,below,0,1,0,188,233,135,155,34,42,60,assets/body_pose_01,body_back_arm_01.png
+hm00008,chainmail,front arm underarmor,neutral1,male1,Front Arm Mail,hm00002,hm00002,above,0,1,0,404,236,82,199,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png

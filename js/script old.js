@@ -191,7 +191,7 @@ function applyGroupHsl (reference, assets, n){ //applies index n of reference ar
 
 	for(var x in assets){
 
-		if( reference[n].list.indexOf(assets[x].category) != -1){ //if the slot name exists in group list, then change values
+		if( reference[n].list.indexOf(assets[x].slot) != -1){ //if the slot name exists in group list, then change values
 			
 			assets[x].hue = reference[n].hue;
 			assets[x].sat = reference[n].sat;
@@ -314,9 +314,7 @@ function getImageData (arr, callback){
 			//create image element
 			img[j] = new Image();
 
-			console.log(arr[j].filename);
-
-			img[j].src = arr[j].location + '/' + arr[j].filename;
+			img[j].src = arr[j].location;
 
 			img[j].onload = function() {
 
