@@ -8,11 +8,14 @@ $.ajax ({
 
 		assetInfo = csvToObj(data);
 
+		console.log (assetInfo);
+
 		var branches = {};
 
 		//creates object for each 'slot' which stores its parent, the assets in the slot, and its children
 		for( var i = 0, len = assetInfo.length; i < len; i++){
 
+			//creates an object for each slot name within branches
 			if(!branches[assetInfo[i].slot]) {
 
 				branches[assetInfo[i].slot] = {
@@ -22,13 +25,20 @@ $.ajax ({
 				};
 			}
 
+			//inserts the asset info as an object with name id, for each asset that can occupy the slot
 			branches[assetInfo[i].slot].assets[assetInfo[i].id] = assetInfo[i]; 
 		}
 
-		for( var i = 0, len = assetInfo.length; i < len; i++){
+		for( var i = 0, len = assetInfo.length; i < len; i++) {
+			// if the slot's parent isn't root, and the slot is mot a trim
+			if (assetInfo[i].parent != "root" && assetInfo[i].slot != "trim"){
+				
+				// add the branch of the slot to its parent children object
+				branches[assetInfo[i].parent].children[assetInfo[i].slot] = branches[assetInfo[i].slot];
+			}
+			else if (assetInfo[i].slot == "trim") {
 
-			if(assetInfo[i].parent != "root" && assetInfo[i].slot != "trim")
-			branches[assetInfo[i].parent].children[assetInfo[i].slot] = branches[assetInfo[i].slot];
+			}
 		}
 
 		console.log(branches);
