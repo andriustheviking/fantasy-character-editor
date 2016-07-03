@@ -247,6 +247,7 @@ function parseGroups (text){ //returns an array of objects {groupName,h,s,l,list
 	return arr;
 }
 
+//returns and array of objects
 function csvToObj(text) {
 
 	var textLines = text.split(/\r\n|\n/);
