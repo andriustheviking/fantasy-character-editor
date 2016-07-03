@@ -1,6 +1,6 @@
 //for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
-
+ 
 $.ajax ({
 	type: "GET",
 	url: "./csv/slots.csv",
