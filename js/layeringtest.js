@@ -1,6 +1,8 @@
 //for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
  
+ var slotTree = {};
+
 $.ajax ({
 	type: "GET",
 	url: "./csv/slots.csv",
@@ -9,37 +11,34 @@ $.ajax ({
 
 		var slotObj = csvToObj(data, 'slot');
 
-		console.log (slotObj);
-
 		for( var x in slotObj) {
 
-			if( x.parent != "root"){
-				slotObj[x.parent].prototype.children.push(x);
+			var xParent = slotObj[x].parent;
+
+			//add root slots to tree
+			if( xParent == "root"){
+				slotTree[x] = slotObj[x];
 			}
-		}
-		console.log (slotObj);
-		for( var x in slotObj) {
-			// if the slot's parent isn't root, and the slot is mot a trim
-			if (slotObj[x].parent != "root" && slotObj[x].slot != "trim"){
-				
-				// add the branch of the slot to its parent's children object
-				branches[slotObj[x].parent].children[slotObj[x].slot] = branches[slotObj[x].slot];
-			}
-			else if (slotObj[x].slot == "trim") {
-
-			}
-		}
-
-		var tree = {};
-
-		for (x in branches) {
-
-			if(branches[x].parent == "root"){
-				tree[x] = branches[x]; //adds only root branches to tree.root
+			else {
+				if(slotObj[x].order < 0){
+					if(!slotObj[xParent].childrenBelow){ //if x's parent doesn't have childrenBelow, create childrenBelow array
+						slotObj[xParent].childrenBelow = [];
+					}
+					slotObj[xParent].childrenBelow[Math.abs(slotObj[x].order)] = slotObj[x]; //link x to childrenBelow array ordered by its
+				}
+				else {
+					if(!slotObj[xParent].childrenAbove){ //if x's parent doesn't have childrenBelow, create childrenBelow array
+						slotObj[xParent].childrenAbove = [];
+					}
+					slotObj[xParent].childrenAbove[slotObj[x].order] = slotObj[x]; //link x to childrenBelow array ordered by its
+				}
 			}
 		}
 
-		console.log(tree);
+console.log(slotObj);
+console.log(slotTree);
+console.log("next insert asset csv info to slotObj");
+		
 
 	}
 
