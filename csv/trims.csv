@@ -1,0 +1,3 @@
+id,name,parentAsset,trimPlacement,order,position,removable,equipped,x,y,w,h,hue,sat,lum,location,filename
+tm00001,Back Shoe Trim,hm00012,bFootUnder,1,a,0,1,275,626,80,43,0,50,50,assets/armor_pose_01,leather_backfoottrim_01.png
+tm00002,Front Shoe Trim,hm00013,fFootUnder,1,a,0,1,396,610,72,56,0,50,50,assets/armor_pose_01,leather_frontfoottrim_01.png
