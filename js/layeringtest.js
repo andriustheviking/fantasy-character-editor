@@ -12,31 +12,31 @@ $.ajax ({
 
 		slotObj = csvToObj(data, 'slot');
 
-		for( var x in slotObj) {
+		for( var key in slotObj) {
 
-			slotObj[x].assetEquipped = "";
-			slotObj[x].trimsEquipped = [];
+			slotObj[key].assetEquipped = "";
+			slotObj[key].trimsEquipped = [];
 
-			var xParent = slotObj[x].parent;
+			var keyParent = slotObj[key].parent;
 
-			if(!slotObj.hasOwnProperty(x)) continue; //don't include primitive prototypes
+			if(!slotObj.hasOwnProperty(key)) continue; //don't include primitive prototypes
 
 			//add root slots to tree
-			if( xParent == "root"){
-				slotTree[x] = slotObj[x]; //insert object for slot x into property x of slotTree
+			if( keyParent == "root"){
+				slotTree[key] = slotObj[key]; //insert object for slot key into property key of slotTree
 			}
 			else {
-				if(slotObj[x].order < 0){ //if the order of the object of x is <1, then it goes in children.Below of its parent slot
-					if(!slotObj[xParent].childrenBelow){ //if x's parent doesn't have childrenBelow, create childrenBelow array
-						slotObj[xParent].childrenBelow = [];
+				if(slotObj[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
+					if(!slotObj[keyParent].childrenBelow){ //if key's parent doesn't have childrenBelow, create childrenBelow array
+						slotObj[keyParent].childrenBelow = [];
 					}
-					slotObj[xParent].childrenBelow[Math.abs(slotObj[x].order)] = slotObj[x]; //link x to childrenBelow array according to its order property
+					slotObj[keyParent].childrenBelow[Math.abs(slotObj[key].order)] = slotObj[key]; //link key to childrenBelow array according to its order property
 				}
 				else {
-					if(!slotObj[xParent].childrenAbove){ //if x's parent doesn't have childrenAbove create childrenAbove array
-						slotObj[xParent].childrenAbove = [];
+					if(!slotObj[keyParent].childrenAbove){ //if key's parent doesn't have childrenAbove create childrenAbove array
+						slotObj[keyParent].childrenAbove = [];
 					}
-					slotObj[xParent].childrenAbove[slotObj[x].order] = slotObj[x]; //link x to childrenAbove array according to its order property
+					slotObj[keyParent].childrenAbove[slotObj[key].order] = slotObj[key]; //link key to childrenAbove array according to its order property
 				}
 			}
 		}
@@ -52,16 +52,16 @@ $.ajax ({
 
 				var slot;
 
-				for (var x in assetObj){
+				for (var key in assetObj){
 
-					if(!assetObj.hasOwnProperty(x)) continue;//don't include primitive prototypes
+					if(!assetObj.hasOwnProperty(key)) continue;//don't include primitive prototypes
 
-					slot = assetObj[x].slot; //get the id of the slot the asset is assigned
+					slot = assetObj[key].slot; //get the id of the slot the asset is assigned
 
 					if(!slotObj[slot].assets) { //if the slotObj of the asset doesn't have an asset parameter, make one
 						slotObj[slot].assets = {};
 					}
-					slotObj[slot].assets[x] = assetObj[x]; //insert assetObj[x] into slotObj[].assets, by its id
+					slotObj[slot].assets[key] = assetObj[key]; //insert assetObj[key] into slotObj[].assets, by its id
 				}
 
 				//now get trim info and store it in assets
@@ -75,16 +75,16 @@ $.ajax ({
 
 						var pId;
 
-						for (var x in trimObj){
+						for (var key in trimObj){
 
-							if(!trimObj.hasOwnProperty(x)) continue;//don't include primitive prototypes
+							if(!trimObj.hasOwnProperty(key)) continue;//don't include primitive prototypes
 
-							pId = trimObj[x].parentAsset;
+							pId = trimObj[key].parentAsset;
 
 							if(!assetObj[pId].trims){
 								assetObj[pId].trims = {};
 							}
-							assetObj[pId].trims[x] = trimObj[x]; //add trims to asset objects
+							assetObj[pId].trims[key] = trimObj[key]; //add trims to asset objects
 
 						}
 console.log(slotObj);

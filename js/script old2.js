@@ -2,159 +2,190 @@
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
 $(document).ready( function(){
 
-	var slotsByName = {},
-	assetsById = {}, 
-	trimsById = {},
-	drawArrayById = [];
+	var assetInfo = [];
 
-	var slotTree = {
-		assetEquipped : "",
-		assets : {},
-		childrenAbove : [],
-		childrenBelow : [],
-		trimsEquipped : {},
-	};
+	var n;
+
+	var groupArray = []; // array 
+
+	var selOptions = []; //array to store selector options
+
+	var arrayRef;
 
 	$.ajax ({
 		type: "GET",
-		url: "./csv/slots.csv",
+		url: "./csv/humanmale_pose_01.csv",
 		dataType: "text",
+		success: function(data) { 
 
-		success: function (data) { //create an object treee of the slots of the character from slots.csv
+			assetInfo = csvToObj(data);
 
-			slotsByName = csvToObj(data, 'name');
+			for(var x in assetInfo){	
+				var obj = {};		
+				obj.name = assetInfo[x].name; 
+				obj.value = x;
+				obj.class = "bodyasset";
+				selOptions.push(obj);								
+			}//pushes object onto selOptions array
 
-			for( var key in slotsByName) { //add empty properties to each slotsByName[key]
-				slotsByName[key].assetEquipped = ""; //stores id of asset for this slot, if equipped
-				slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
-				slotsByName[key].childrenAbove = []; // array of children slots above this slot
-				slotsByName[key].childrenBelow = []; // array of children slots below this slot
-				slotsByName[key].trimsEquipped = {}; //array of trims applied to this slot
-			}
+			insertOptions('#selector', selOptions);
 
-			for( var key in slotsByName) {
+			n = parseInt($('#selector').val());		
 
-				var objParent = slotsByName[key].parent;
-
-				if(!slotsByName.hasOwnProperty(key)) continue; //don't include primitive prototypes
-
-				//add root slots to tree
-				if( objParent == "root"){
-					slotTree.childrenAbove[slotsByName[key].order] = slotsByName[key]; //insert object for key into property of slotTree
-				}
-				else {
-					if(slotsByName[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
-						slotsByName[objParent].childrenBelow[Math.abs(slotsByName[key].order) - 1] = slotsByName[key]; // (abs - 1, since index must start at 0, and be positive)
-					}
-					else {
-						slotsByName[objParent].childrenAbove[slotsByName[key].order] = slotsByName[key]; //link key to childrenAbove array according to its order property
-					}
-				}
-			}
+			getImageData(assetInfo,drawCharacter);
 		
-			//get asset info and attach to slot tree
+			updateOutput(assetInfo,n);
+
+			console.log(assetInfo);			
+
 			$.ajax({
 				type: "GET",
-				url: "./csv/asset info.csv",
+				url: "./csv/groups.csv",
 				dataType: "text",
-				success: function (data) {
+				success: function(data) {
 
-					assetsById = csvToObj(data, "id");
+					groupArray = parseGroups(data);
 
-					var slot;
+					for(var x in groupArray){	
+						var obj = {};		
+						obj.name = x; 
+						obj.value = x;					//TEMPORARY STORING CLASS VALUE
+						obj.class = "bodygroup";          
+						selOptions.push(obj);								
+					}	
 
-					for (var id in assetsById){
+					insertOptions('#selector', selOptions);
 
-						if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-						slot = assetsById[id].slot; //get the id of the slot the asset is assigned
-
-						if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
-							slotsByName[slot].assets = {};
-						}
-
-						slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
-
-						if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
-							slotsByName[slot].assetEquipped = id;
-						}
-					}
-
-					//now get trim info and store it in assets
-					$.ajax({
-						type: "GET",
-						url: "./csv/trims.csv",
-						dataType: "text",
-						success: function (data) {
-
-							trimsById = csvToObj(data, "id");
-
-							var parentId;
-
-							for (var id in trimsById){
-
-								if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-								parentId = trimsById[id].parentAsset;
-
-								if(!assetsById[parentId].trims){
-									assetsById[parentId].trims = {};
-								}
-
-								assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
-
-								if (assetsById[parentId].equipped){ //add the trims to their place
-
-									var slot = slotsByName[trimsById[id].trimPlacement];
-
-									if(!slot.trimsEquipped[parentId]){
-										slot.trimsEquipped[parentId] = []; //adds array to store trim ids by parentId
-									} 
-									slot.trimsEquipped[parentId][trimsById[id].order] = id;
-								}
-
-							}
-
-							drawArrayById = createDrawArrayById(drawArrayById, slotTree);
-
-							console.log(slotTree, drawArrayById);
-
-						},
-						error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-					            console.log(status + err + ": could not load trim info");
-					    }
-					});
-				},
-				error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-			            console.log(status + err + ": could not load asset info");
-			    }
-			});
-		},
-		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-	            console.log(status + err + ": could not load slot info");
+					console.log(groupArray);
+				}
+			});		
 		}
-	});	 
+	});
 
+	//if selector is changed, update sliders and text
+	$("#selector").change(function(){
+
+		if( $("#selector option:selected").hasClass("bodygroup")) {
+			
+			arrayRef = groupArray;
+
+			$("#applygroup").show(); //show apply button
+	
+		}
+		else if( $("#selector option:selected").hasClass('bodyasset')) {
+
+			arrayRef = assetInfo;
+
+			$("#applygroup").hide(); //hide apply button
+
+		}
+
+		n = $('#selector').val();	
+
+		updateOutput(arrayRef,n);
+
+	});
+
+	//when apply button is pressed, apply skin group to assets then hide button
+	$('#applygroup').click( function(){
+
+		if( $("#selector option:selected").hasClass("bodygroup")) {
+			arrayRef = groupArray;
+			n = $("#selector option:selected").val();
+		}
+
+		applyGroupHsl(arrayRef, assetInfo,n);
+
+		drawCharacter(assetInfo)
+
+		$("#applygroup").hide(); //hide apply button
+
+	});
+
+	//if slider is changed update values
+	$('input[type=range]').change(function(){
+
+		n = $('#selector').val();	
+
+		//update values in user array
+		arrayRef[n].hue = $("#hueslide").val();
+		arrayRef[n].sat = $("#satslide").val();
+		arrayRef[n].lum = $("#lumslide").val();
+
+		updateOutput(arrayRef,n);
+
+		if( arrayRef == assetInfo){
+			drawCharacter(assetInfo); //draw character using user array
+		}
+		else if (arrayRef == groupArray && $('#applygroup').css('display') == 'none'){
+			console.log('here');
+			applyGroupHsl(arrayRef, assetInfo,n);
+			drawCharacter(assetInfo); //draw character using user array
+		}
+
+
+	});   
+
+	//manual hsl input update array hsl values and redraw
+	$('input[type=text]').change(function(){
+
+		n = $('#selector').val();
+
+		//update values in user array
+		arrayRef[n].hue = $("#huetext").val();
+		arrayRef[n].sat = $("#sattext").val();
+		arrayRef[n].lum = $("#lumtext").val();
+
+		updateOutput(arrayRef,n);
+
+		if( arrayRef == assetInfo){
+			drawCharacter(assetInfo); //draw character using user array
+		}
+		else if (arrayRef == groupArray && $('#applygroup').css('display') == 'none'){
+			console.log('here');
+			applyGroupHsl(arrayRef, assetInfo,n);
+			drawCharacter(assetInfo); //draw character using user array
+		}
+
+	});    
+
+	//clickable selectivity
+		var canvas = document.getElementById('canvas'),
+		    canLeft = canvas.offsetLeft,
+		    canTop = canvas.offsetTop;
+
+		    canvas.addEventListener('click', function(event){
+
+		    	var x = event.pageX - canLeft,
+		    	y = event.pageY - canTop;
+
+		    	//adjust for responsive height
+		    	x = Math.floor(x * canvas.width / $('#canvas').width());
+		    	y = Math.floor(y * canvas.height / $('#canvas').height());
+
+			for(var l = assetInfo.length, i = l - 1; i >= 0; i--){ //iterate down array
+
+				if( x >= assetInfo[i].x &&
+					x <= assetInfo[i].x + assetInfo[i].w &&
+					y >= assetInfo[i].y &&
+					y <= assetInfo[i].y + assetInfo[i].h ) { //check if mouse is in bounds of asset
+
+					if( assetInfo[i].img.data[4 *(x - assetInfo[i].x + assetInfo[i].w * (y - assetInfo[i].y)) + 3] ) { //if pixel alpha 
+
+						$('#selector').val(i);
+
+						arrayRef = assetInfo;
+
+						updateOutput(assetInfo, i);
+						break;
+					}
+				}				
+			}
+
+
+		});
 
 });
-
-function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
-
-	for(var i = 0, i_len = slotsByName.childrenBelow.length; i < i_len; i++){ //first iterate along drawArrayById's childrenBelow
-		createDrawArrayById(array, slotsByName.childrenBelow[i]);
-	}
-
-	if(slotsByName.assetEquipped) array.push(slotsByName.assetEquipped);
-
-	if(slotsByName.trimsEquipped) array.concat(slotsByName.trimsEquipped);
-
-	for (var i = 0, i_len = slotsByName.childrenAbove.length; i < i_len; i++) {
-		createDrawArrayById(array, slotsByName.childrenAbove[i]);
-	}
-
-	return array;
-
-}
 
 function applyGroupHsl (reference, assets, n){ //applies index n of reference array hsl to asset array
 
@@ -216,14 +247,14 @@ function parseGroups (text){ //returns an array of objects {groupName,h,s,l,list
 	return arr;
 }
 
-//creates object from csv text. assigned by specified property
-function csvToObj(text, property) {
+//returns and array of objects
+function csvToObj(text) {
 
 	var textLines = text.split(/\r\n|\n/);
 	
 	var headers = textLines[0].split(',');
 
-	var output = {}
+	var arr = [];
 
 	for (var i = 1, len = textLines.length; i < len; i++) {
 		
@@ -233,7 +264,7 @@ function csvToObj(text, property) {
 		
 		for (var j = 0, jlen = headers.length; j < jlen; j++){		
 
-			//we need parse numbers for number strings
+			//we need parse numbers for only number strings
 			if( isNaN(lineArr[j]) ){
 				obj[headers[j]] = lineArr[j];
 			}
@@ -244,10 +275,10 @@ function csvToObj(text, property) {
 
 		//prevent adding empty object
 		if( lineArr[j - 1]){ 
-			output[obj[property]] = obj;
+			arr[obj.drawOrder] = obj;
 		}
 	}
-	return output;
+	return arr;
 }
 
 
