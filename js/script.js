@@ -1,3 +1,5 @@
+
+
 //for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
 
@@ -7,7 +9,8 @@ assetsById = {},
 trimsById = {},
 drawArrayById = [],
 groupArray = [],
-selOptions = []; 
+selOptions = [],
+selectedAsset; 
 
 
 var slotTree = {
@@ -21,181 +24,167 @@ var slotTree = {
 
 $(document).ready( function(){
 
-	slotInfoRequest( function(){		
+	$.when(
 
-		insertOptions('#selector', selOptions);
+		$.ajax ({
+			type: "GET",
+			url: "./csv/slots.csv",
+			dataType: "text",
 
+			success: function (data) { //create an object treee of the slots of the character from slots.csv
+
+				slotsByName = csvToObj(data, 'name');
+			},
+			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+		            console.log(status + err + ": could not load slot info");
+			}
+		}),
+
+		$.ajax({
+			type: "GET",
+			url: "./csv/asset info.csv",
+			dataType: "text",
+			success: function (data) {
+
+				assetsById = csvToObj(data, "id");
+			},
+			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+		            console.log(status + err + ": could not load asset info");
+		    }
+		}),
+
+		$.ajax({
+			type: "GET",
+			url: "./csv/trims.csv",
+			dataType: "text",
+			success: function (data) {
+
+				trimsById = csvToObj(data, "id");
+			},
+			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+		            console.log(status + err + ": could not load trim info");
+		    }
+		}),
+
+		$.ajax({
+			type: "GET",
+			url: "./csv/groups.csv",
+			dataType: "text",
+			success: function(data) {
+
+				groupArray = parseSlotGroups(data);
+			},
+			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+			    console.log(status + err + ": could not load group info");
+			}
+		})
+	).done( function(){
+
+	//first handle slots
+		for( var key in slotsByName) { //add empty properties to each slotsByName[key]
+			slotsByName[key].assetEquipped = ""; //stores id of asset for this slot, if equipped
+			slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
+			slotsByName[key].childrenAbove = []; // array of children slots above this slot
+			slotsByName[key].childrenBelow = []; // array of children slots below this slot
+			slotsByName[key].trimsEquipped = {}; //array of trims applied to this slot
+		}
+
+		for( var key in slotsByName) {
+
+			var objParent = slotsByName[key].parent;
+
+			if(!slotsByName.hasOwnProperty(key)) continue; //don't include primitive prototypes
+
+			//add root slots to tree
+			if( objParent == "root"){
+				slotTree.childrenAbove[slotsByName[key].order] = slotsByName[key]; //insert object for key into property of slotTree
+			}
+			else {
+				if(slotsByName[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
+					slotsByName[objParent].childrenBelow[Math.abs(slotsByName[key].order) - 1] = slotsByName[key]; // (abs - 1, since index must start at 0, and be positive)
+				}
+				else {
+					slotsByName[objParent].childrenAbove[slotsByName[key].order] = slotsByName[key]; //link key to childrenAbove array according to its order property
+				}
+			}
+		}
+
+	//now handle assets
+		var slot;
+
+		for (var id in assetsById){
+
+			if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
+
+			slot = assetsById[id].slot; //get the id of the slot the asset is assigned
+
+			if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
+				slotsByName[slot].assets = {};
+			}
+
+			slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
+
+			if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
+				slotsByName[slot].assetEquipped = id;
+			}
+		}
+
+	//now get trim info and store it in assets
+		var parentId;
+
+
+		for (var id in trimsById){
+
+			if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
+
+			parentId = trimsById[id].parentAsset;
+
+			if(!assetsById[parentId].trims)
+				assetsById[parentId].trims = {}; //create trim object for assets with trims
+			
+			assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
+
+			if (assetsById[parentId].equipped){ //add the trims to their place
+	//console.log(assetsById[parentId]);
+				var slot = slotsByName[trimsById[id].trimPlacement];
+
+				if(!slot.trimsEquipped[parentId]){
+					slot.trimsEquipped[parentId] = []; //adds array for each parent with trims, to store its trims (within the object, slot.trimsEquipped)
+				} 
+				slot.trimsEquipped[parentId][trimsById[id].order] = id;
+			}
+
+		}	
+
+	//now that's done, create array for layers to draw
 		drawArrayById = createDrawArrayById(drawArrayById, slotTree);
 
-		console.log(slotTree, drawArrayById);
-		console.log(selOptions, groupArray);
+		//build selOptions array
+		for(var i = 0, i_len = drawArrayById.length; i < i_len; i++){	
+			
+			var obj = {};
+
+			obj.name = drawArrayById[i].name;
+			obj.selectorValue = drawArrayById[i].id;					
+			obj.class = "equipped_asset";          
+			selOptions.push(obj);								
+		}	
+
+		insertOptions('#equipped_asset_selector', selOptions);
+
+		selectedAsset = $('#equipped_asset_selector').val();
+
+		getImageData(drawArrayById,drawCharacter);
+
 	});
+
+//NOW IMPLIMENT FUNCTIONALITY
 
 });
 
 
-function slotInfoRequest(callback){
-	$.ajax ({
-		type: "GET",
-		url: "./csv/slots.csv",
-		dataType: "text",
+/**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
-		success: function (data) { //create an object treee of the slots of the character from slots.csv
-
-			slotsByName = csvToObj(data, 'name');
-
-			for( var key in slotsByName) { //add empty properties to each slotsByName[key]
-				slotsByName[key].assetEquipped = ""; //stores id of asset for this slot, if equipped
-				slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
-				slotsByName[key].childrenAbove = []; // array of children slots above this slot
-				slotsByName[key].childrenBelow = []; // array of children slots below this slot
-				slotsByName[key].trimsEquipped = {}; //array of trims applied to this slot
-			}
-
-			for( var key in slotsByName) {
-
-				var objParent = slotsByName[key].parent;
-
-				if(!slotsByName.hasOwnProperty(key)) continue; //don't include primitive prototypes
-
-				//add root slots to tree
-				if( objParent == "root"){
-					slotTree.childrenAbove[slotsByName[key].order] = slotsByName[key]; //insert object for key into property of slotTree
-				}
-				else {
-					if(slotsByName[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
-						slotsByName[objParent].childrenBelow[Math.abs(slotsByName[key].order) - 1] = slotsByName[key]; // (abs - 1, since index must start at 0, and be positive)
-					}
-					else {
-						slotsByName[objParent].childrenAbove[slotsByName[key].order] = slotsByName[key]; //link key to childrenAbove array according to its order property
-					}
-				}
-			}
-		
-		assetInfoRequest(callback);
-
-		},
-		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-	            console.log(status + err + ": could not load slot info");
-		}
-	});	 
-}
-
-function assetInfoRequest(callback){
-	//get asset info and attach to slot tree
-	$.ajax({
-		type: "GET",
-		url: "./csv/asset info.csv",
-		dataType: "text",
-		success: function (data) {
-
-			assetsById = csvToObj(data, "id");
-
-			var slot;
-
-			for (var id in assetsById){
-
-				if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-				slot = assetsById[id].slot; //get the id of the slot the asset is assigned
-
-				if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
-					slotsByName[slot].assets = {};
-				}
-
-				slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
-
-				if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
-					slotsByName[slot].assetEquipped = id;
-				}
-			}
-
-			//now get group info and store it in assets
-			trimInfoRequest(callback);
-
-		},
-		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-	            console.log(status + err + ": could not load asset info");
-	    }
-	});
-}
-
-function trimInfoRequest(callback){
-
-	$.ajax({
-		type: "GET",
-		url: "./csv/trims.csv",
-		dataType: "text",
-		success: function (data) {
-
-			trimsById = csvToObj(data, "id");
-
-			var parentId;
-
-			for (var id in trimsById){
-
-				if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-				parentId = trimsById[id].parentAsset;
-
-				if(!assetsById[parentId].trims){
-					assetsById[parentId].trims = {};
-				}
-
-				assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
-
-				if (assetsById[parentId].equipped){ //add the trims to their place
-
-					var slot = slotsByName[trimsById[id].trimPlacement];
-
-					if(!slot.trimsEquipped[parentId]){
-						slot.trimsEquipped[parentId] = []; //adds array to store trim ids by parentId
-					} 
-					slot.trimsEquipped[parentId][trimsById[id].order] = id;
-				}
-
-			}
-			//now get group info and store it in assets
-			groupsInfoRequest(callback);
-
-		},
-		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-	            console.log(status + err + ": could not load trim info");
-	    }
-	});
-
-}
-
-function groupsInfoRequest(callback){
-
-	$.ajax({
-	type: "GET",
-	url: "./csv/groups.csv",
-	dataType: "text",
-	success: function(data) {
-
-		groupArray = parseSlotGroups(data);
-
-		for(var group in groupArray){	
-			var obj = {};		
-			obj.name = group; 
-			obj.selectorValue = group;					//TEMPORARY STORING CLASS VALUE
-			obj.class = "bodygroup";          
-			selOptions.push(obj);								
-		}	
-
-		callback();
-
-		},
-		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-		    console.log(status + err + ": could not load group info");
-
-		callback();
-
-		}
-	});
-
-}
 
 function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
 
@@ -203,9 +192,20 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 		createDrawArrayById(array, slotsByName.childrenBelow[i]);
 	}
 
-	if(slotsByName.assetEquipped) array.push(slotsByName.assetEquipped);
+	//add assets
+	if(slotsByName.assetEquipped) array.push(assetsById[slotsByName.assetEquipped]); 
 
-	if(slotsByName.trimsEquipped) array.concat(slotsByName.trimsEquipped);
+	//add trim objects to array
+	if(slotsByName.trimsEquipped){ 
+
+		for(var key in slotsByName.trimsEquipped){ //iterate through each group of trims equipped
+
+			for(var i = 0, i_len = slotsByName.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
+
+				array.push(trimsById[slotsByName.trimsEquipped[key][i]]); 
+			}
+		}
+	}
 
 	for (var i = 0, i_len = slotsByName.childrenAbove.length; i < i_len; i++) {
 		createDrawArrayById(array, slotsByName.childrenAbove[i]);
@@ -334,7 +334,7 @@ function getImageData (arr, callback){
 	//need counter due to asynch loading
 	var counter = 0;
 
-	//iterate though dropbox links and fill arr with image data using canvas
+	//iterate though array
 	for (var i = 0, l = arr.length; i < l; i++) {
 
 	//anonymous function to fix sync issue
