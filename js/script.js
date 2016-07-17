@@ -1,20 +1,40 @@
 //for OSX: open -a 'Google Chrome.app' --args --disable-web-security --allow-file-access-from-files
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
+
+//GLOBALS
+var slotsByName = {},
+assetsById = {}, 
+trimsById = {},
+drawArrayById = [],
+groupArray = [],
+selOptions = []; 
+
+
+var slotTree = {
+	assetEquipped : "",
+	assets : {},
+	childrenAbove : [],
+	childrenBelow : [],
+	trimsEquipped : {},
+};
+
+
 $(document).ready( function(){
 
-	var slotsByName = {},
-	assetsById = {}, 
-	trimsById = {},
-	drawArrayById = [];
+	slotInfoRequest( function(){		
 
-	var slotTree = {
-		assetEquipped : "",
-		assets : {},
-		childrenAbove : [],
-		childrenBelow : [],
-		trimsEquipped : {},
-	};
+		insertOptions('#selector', selOptions);
 
+		drawArrayById = createDrawArrayById(drawArrayById, slotTree);
+
+		console.log(slotTree, drawArrayById);
+		console.log(selOptions, groupArray);
+	});
+
+});
+
+
+function slotInfoRequest(callback){
 	$.ajax ({
 		type: "GET",
 		url: "./csv/slots.csv",
@@ -52,91 +72,130 @@ $(document).ready( function(){
 				}
 			}
 		
-			//get asset info and attach to slot tree
-			$.ajax({
-				type: "GET",
-				url: "./csv/asset info.csv",
-				dataType: "text",
-				success: function (data) {
+		assetInfoRequest(callback);
 
-					assetsById = csvToObj(data, "id");
-
-					var slot;
-
-					for (var id in assetsById){
-
-						if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-						slot = assetsById[id].slot; //get the id of the slot the asset is assigned
-
-						if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
-							slotsByName[slot].assets = {};
-						}
-
-						slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
-
-						if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
-							slotsByName[slot].assetEquipped = id;
-						}
-					}
-
-					//now get trim info and store it in assets
-					$.ajax({
-						type: "GET",
-						url: "./csv/trims.csv",
-						dataType: "text",
-						success: function (data) {
-
-							trimsById = csvToObj(data, "id");
-
-							var parentId;
-
-							for (var id in trimsById){
-
-								if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
-
-								parentId = trimsById[id].parentAsset;
-
-								if(!assetsById[parentId].trims){
-									assetsById[parentId].trims = {};
-								}
-
-								assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
-
-								if (assetsById[parentId].equipped){ //add the trims to their place
-
-									var slot = slotsByName[trimsById[id].trimPlacement];
-
-									if(!slot.trimsEquipped[parentId]){
-										slot.trimsEquipped[parentId] = []; //adds array to store trim ids by parentId
-									} 
-									slot.trimsEquipped[parentId][trimsById[id].order] = id;
-								}
-
-							}
-
-							drawArrayById = createDrawArrayById(drawArrayById, slotTree);
-
-							console.log(slotTree, drawArrayById);
-
-						},
-						error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-					            console.log(status + err + ": could not load trim info");
-					    }
-					});
-				},
-				error: function(xhr, status, err){  //apparently not thrown on cross domain requests
-			            console.log(status + err + ": could not load asset info");
-			    }
-			});
 		},
 		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
 	            console.log(status + err + ": could not load slot info");
 		}
 	});	 
+}
 
+function assetInfoRequest(callback){
+	//get asset info and attach to slot tree
+	$.ajax({
+		type: "GET",
+		url: "./csv/asset info.csv",
+		dataType: "text",
+		success: function (data) {
 
-});
+			assetsById = csvToObj(data, "id");
+
+			var slot;
+
+			for (var id in assetsById){
+
+				if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
+
+				slot = assetsById[id].slot; //get the id of the slot the asset is assigned
+
+				if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
+					slotsByName[slot].assets = {};
+				}
+
+				slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
+
+				if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
+					slotsByName[slot].assetEquipped = id;
+				}
+			}
+
+			//now get group info and store it in assets
+			trimInfoRequest(callback);
+
+		},
+		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+	            console.log(status + err + ": could not load asset info");
+	    }
+	});
+}
+
+function trimInfoRequest(callback){
+
+	$.ajax({
+		type: "GET",
+		url: "./csv/trims.csv",
+		dataType: "text",
+		success: function (data) {
+
+			trimsById = csvToObj(data, "id");
+
+			var parentId;
+
+			for (var id in trimsById){
+
+				if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
+
+				parentId = trimsById[id].parentAsset;
+
+				if(!assetsById[parentId].trims){
+					assetsById[parentId].trims = {};
+				}
+
+				assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
+
+				if (assetsById[parentId].equipped){ //add the trims to their place
+
+					var slot = slotsByName[trimsById[id].trimPlacement];
+
+					if(!slot.trimsEquipped[parentId]){
+						slot.trimsEquipped[parentId] = []; //adds array to store trim ids by parentId
+					} 
+					slot.trimsEquipped[parentId][trimsById[id].order] = id;
+				}
+
+			}
+			//now get group info and store it in assets
+			groupsInfoRequest(callback);
+
+		},
+		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+	            console.log(status + err + ": could not load trim info");
+	    }
+	});
+
+}
+
+function groupsInfoRequest(callback){
+
+	$.ajax({
+	type: "GET",
+	url: "./csv/groups.csv",
+	dataType: "text",
+	success: function(data) {
+
+		groupArray = parseSlotGroups(data);
+
+		for(var group in groupArray){	
+			var obj = {};		
+			obj.name = group; 
+			obj.selectorValue = group;					//TEMPORARY STORING CLASS VALUE
+			obj.class = "bodygroup";          
+			selOptions.push(obj);								
+		}	
+
+		callback();
+
+		},
+		error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+		    console.log(status + err + ": could not load group info");
+
+		callback();
+
+		}
+	});
+
+}
 
 function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
 
@@ -183,7 +242,7 @@ function insertOptions(idString, arr){ //insert options into element specified b
 	$(idString).html(s);
 }
 
-function parseGroups (text){ //returns an array of objects {groupName,h,s,l,list}
+function parseSlotGroups (text){ //returns an array of objects {groupName,h,s,l,list}
 
 	//split up csv lines into array
 	var textLines = text.split(/\r\n|\n/);

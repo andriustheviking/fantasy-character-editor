@@ -49,7 +49,7 @@ $(document).ready( function(){
 					for(var x in groupArray){	
 						var obj = {};		
 						obj.name = x; 
-						obj.value = x;					//TEMPORARY STORING CLASS VALUE
+						obj.selectorValue = x;					//TEMPORARY STORING CLASS VALUE
 						obj.class = "bodygroup";          
 						selOptions.push(obj);								
 					}	
