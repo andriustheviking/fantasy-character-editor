@@ -10,7 +10,8 @@ trimsById = {},
 drawArrayById = [],
 groupArray = [],
 selOptions = [],
-selectedAsset; 
+selectedSlot = "",
+selectedAsset = ""; 
 
 
 var slotTree = {
@@ -80,7 +81,7 @@ $(document).ready( function(){
 		})
 	).done( function(){
 
-	//first handle slots
+		//fill out rest of slot object
 		for( var key in slotsByName) { //add empty properties to each slotsByName[key]
 			slotsByName[key].assetEquipped = ""; //stores id of asset for this slot, if equipped
 			slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
@@ -89,6 +90,7 @@ $(document).ready( function(){
 			slotsByName[key].trimsEquipped = {}; //array of trims applied to this slot
 		}
 
+	// link slot parents / children
 		for( var key in slotsByName) {
 
 			var objParent = slotsByName[key].parent;
@@ -109,7 +111,7 @@ $(document).ready( function(){
 			}
 		}
 
-	//now handle assets
+	// link assets to slots
 		var slot;
 
 		for (var id in assetsById){
@@ -129,9 +131,8 @@ $(document).ready( function(){
 			}
 		}
 
-	//now get trim info and store it in assets
+	// get trim info and store it in assets
 		var parentId;
-
 
 		for (var id in trimsById){
 
@@ -153,38 +154,96 @@ $(document).ready( function(){
 				} 
 				slot.trimsEquipped[parentId][trimsById[id].order] = id;
 			}
-
 		}	
 
 	//now that's done, create array for layers to draw
+
 		drawArrayById = createDrawArrayById(drawArrayById, slotTree);
 
 		//build selOptions array
-		for(var i = 0, i_len = drawArrayById.length; i < i_len; i++){	
+		for(var key in slotsByName){	
 			
 			var obj = {};
 
-			obj.name = drawArrayById[i].name;
-			obj.selectorValue = drawArrayById[i].id;					
-			obj.class = "equipped_asset";          
+			obj.name = slotsByName[key].name;
+			obj.value = slotsByName[key].name;					
+			obj.class = "slots";    
+    
 			selOptions.push(obj);								
 		}	
 
-		insertOptions('#equipped_asset_selector', selOptions);
+		insertOptions('#slot_selector', selOptions);
 
-		selectedAsset = $('#equipped_asset_selector').val();
+		selectedSlot = $('#slot_selector').val();
 
 		getImageData(drawArrayById,drawCharacter);
 
 	});
+});
 
 //NOW IMPLIMENT FUNCTIONALITY
 
+//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
+$('#slot_selector').change(function(){
+	selectedSlot = $('#slot_selector').val();
+	updateAssetSelector(selectedSlot);
 });
 
+//when the asset selector is changed
+$('#asset_selector').change( function(){
+	
+	selectedAsset = $('#asset_selector').val();
+	//change equipped status to 0
+	assetsById[slotsByName[selectedSlot].assetEquipped].equipped = 0; 
+	//insert the id string of the new asset
+	slotsByName[selectedSlot].assetEquipped = selectedAsset; 
+	//update new asset equipped status
+	assetsById[selectedAsset].equipped = 1; 
+	//clear out draw array
+	drawArrayById = [];
+	//create a new draw array
+	drawArrayById = createDrawArrayById(drawArrayById, slotTree); 
+
+	getImageData(drawArrayById,drawCharacter);//getImageData
+	
+});
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
+
+function updateAssetSelector(slotKey){
+
+	var array = [];
+
+	if(slotsByName[slotKey].assets.length > 0) {
+
+		for (var id in slotsByName[slotKey].assets){
+			var obj = {};
+			obj.name = slotsByName[slotKey].assets[id].name;
+			obj.value = id;
+			obj.class = "asset";
+			array.push(obj);
+		}
+		insertOptions('#asset_selector', array);
+		selectedAsset = slotsByName[slotKey].assetEquipped;
+		$('#asset_selector').val(selectedAsset); //select the asset which is equipped
+		updateOutput(assetsById[slotsByName[slotKey].assetEquipped]); //pass the asset object into updateOutput
+	}
+}
+
+function insertOptions(idString, arr){ //insert options into element specified by id
+
+	var s = "";
+
+	for(var i = 0, l = arr.length; i < l; i++){
+		s += "<option value=\"" + arr[i].value + "\"";
+		if(arr[i].class){
+			s += "class=\"" + arr[i].class + "\"";}
+		s += ">" + arr[i].name + "</option>";
+	}
+
+	$(idString).html(s);
+}
 
 function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
 
@@ -193,8 +252,9 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 	}
 
 	//add assets
-	if(slotsByName.assetEquipped) array.push(assetsById[slotsByName.assetEquipped]); 
-
+	if(slotsByName.assetEquipped) {
+		array.push(assetsById[slotsByName.assetEquipped]); 
+	}
 	//add trim objects to array
 	if(slotsByName.trimsEquipped){ 
 
@@ -202,7 +262,8 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 
 			for(var i = 0, i_len = slotsByName.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
 
-				array.push(trimsById[slotsByName.trimsEquipped[key][i]]); 
+				array.push(trimsById[slotsByName.trimsEquipped[key][i]]);
+
 			}
 		}
 	}
@@ -211,6 +272,7 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 		createDrawArrayById(array, slotsByName.childrenAbove[i]);
 	}
 
+//console.log(array);
 	return array;
 
 }
@@ -226,20 +288,6 @@ function applyGroupHsl (reference, assets, n){ //applies index n of reference ar
 			assets[x].lum = reference[n].lum;
 		}
 	}
-}
-
-function insertOptions(idString, arr){ //insert options into element specified by id
-
-	var s = "";
-
-	for(var i in arr){
-		s += "<option value=\"" + arr[i].value + "\"";
-		if(arr[i].class){
-			s += "class=\"" + arr[i].class + "\"";}
-		s += ">" + arr[i].name + "</option>";
-	}
-
-	$(idString).html(s);
 }
 
 function parseSlotGroups (text){ //returns an array of objects {groupName,h,s,l,list}
@@ -310,14 +358,14 @@ function csvToObj(text, property) {
 }
 
 
-function updateOutput(a,n){
+function updateOutput(obj){
 
-		$('#hueslide').val( a[n].hue );
-		$('#huetext').val( a[n].hue );
-		$('#satslide').val( a[n].sat );
-		$('#sattext').val( a[n].sat );
-		$('#lumslide').val( a[n].lum );
-		$('#lumtext').val( a[n].lum );
+		$('#hueslide').val( obj.hue );
+		$('#huetext').val( obj.hue );
+		$('#satslide').val( obj.sat );
+		$('#sattext').val( obj.sat );
+		$('#lumslide').val( obj.lum );
+		$('#lumtext').val( obj.lum );
 }
 
 
@@ -340,30 +388,39 @@ function getImageData (arr, callback){
 	//anonymous function to fix sync issue
 		(function(j,l){
 
-			//create image element
-			img[j] = new Image();
+			if(!arr[j].img) { //if the array doesn't have image data, then get image data, else add to counter
+console.log("drew to canvas");
+				//create image element
+				img[j] = new Image();
 
-			console.log(arr[j].filename);
+				img[j].src = arr[j].location + '/' + arr[j].filename;
 
-			img[j].src = arr[j].location + '/' + arr[j].filename;
+				img[j].onload = function() {
 
-			img[j].onload = function() {
+					ctx.drawImage(img[j], 0, 0);
 
-				ctx.drawImage(img[j], 0, 0);
+					//store data array in array element
+					arr[j].img = ctx.getImageData(0,0, arr[j].w, arr[j].h);
 
-				//store data array in array element
-				arr[j].img = ctx.getImageData(0,0, arr[j].w, arr[j].h);
+					//clear canvas
+					ctx.clearRect( 0, 0, arr[j].w, arr[j].h);
 
-				//clear canvas
-				ctx.clearRect( 0, 0, arr[j].w, arr[j].h);
+					counter++;
+				
+					//after images load, run callback function
+					if(counter == l){
+						callback(arr);
+					}
+				};
+			}
+			else{
 
 				counter++;
 			
-				//after images load, run callback function
-				if(counter == l){
+				if(counter == l){ //after images load, run callback function
 					callback(arr);
-				}
-			};
+				}			
+			}
 		})(i,l);
 	}
 }
