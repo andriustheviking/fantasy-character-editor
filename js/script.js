@@ -11,11 +11,12 @@ drawArrayById = [],
 groupArray = [],
 selOptions = [],
 selectedSlot = "",
-selectedAsset = ""; 
+selectedAsset = "",
+selectedTrim = ""; 
 
 
 var slotTree = {
-	assetEquipped : "",
+	assetEquipped : "None",
 	assets : {},
 	childrenAbove : [],
 	childrenBelow : [],
@@ -83,7 +84,7 @@ $(document).ready( function(){
 
 		//fill out rest of slot object
 		for( var key in slotsByName) { //add empty properties to each slotsByName[key]
-			slotsByName[key].assetEquipped = ""; //stores id of asset for this slot, if equipped
+			slotsByName[key].assetEquipped = "None"; //stores id of asset for this slot, if equipped
 			slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
 			slotsByName[key].childrenAbove = []; // array of children slots above this slot
 			slotsByName[key].childrenBelow = []; // array of children slots below this slot
@@ -162,21 +163,19 @@ $(document).ready( function(){
 
 		//build selOptions array
 		for(var key in slotsByName){	
-			
-			var obj = {};
-
-			obj.name = slotsByName[key].name;
-			obj.value = slotsByName[key].name;					
-			obj.class = "slots";    
-    
-			selOptions.push(obj);								
+		    
+			selOptions.push({
+				name : slotsByName[key].name,
+				value : slotsByName[key].name,					
+				class : "slots"		
+			});								
 		}	
 
-		insertOptions('#slot_selector', selOptions);
+		insertOptions('#slot_selector', selOptions); //insert options into slot_selector element
 
-		selectedSlot = $('#slot_selector').val();
+		selectedSlot = $('#slot_selector').val(); //update selected slot
 
-		getImageData(drawArrayById,drawCharacter);
+		getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
 
 	});
 });
@@ -185,51 +184,106 @@ $(document).ready( function(){
 
 //when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
 $('#slot_selector').change(function(){
-	selectedSlot = $('#slot_selector').val();
-	updateAssetSelector(selectedSlot);
+	createAssetSelector();
 });
 
-//when the asset selector is changed
-$('#asset_selector').change( function(){
-	
-	selectedAsset = $('#asset_selector').val();
-	//change equipped status to 0
-	assetsById[slotsByName[selectedSlot].assetEquipped].equipped = 0; 
-	//insert the id string of the new asset
-	slotsByName[selectedSlot].assetEquipped = selectedAsset; 
-	//update new asset equipped status
-	assetsById[selectedAsset].equipped = 1; 
-	//clear out draw array
-	drawArrayById = [];
-	//create a new draw array
-	drawArrayById = createDrawArrayById(drawArrayById, slotTree); 
 
-	getImageData(drawArrayById,drawCharacter);//getImageData
-	
+$('#asset_selector').change( function(){//when the asset selector is changed
+	updateAsset();
 });
+
+
+
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
 
-function updateAssetSelector(slotKey){
+function createTrimSelector(){
+console.log("Finish createTrimSelector");
 
-	var array = [];
-
-	if(slotsByName[slotKey].assets.length > 0) {
-
-		for (var id in slotsByName[slotKey].assets){
-			var obj = {};
-			obj.name = slotsByName[slotKey].assets[id].name;
-			obj.value = id;
-			obj.class = "asset";
-			array.push(obj);
-		}
-		insertOptions('#asset_selector', array);
-		selectedAsset = slotsByName[slotKey].assetEquipped;
-		$('#asset_selector').val(selectedAsset); //select the asset which is equipped
-		updateOutput(assetsById[slotsByName[slotKey].assetEquipped]); //pass the asset object into updateOutput
+	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
+		$('#trim_selector').show();
+	}
+	else{
+		$('#trim_selector').hide();
 	}
 }
+
+function updateAsset(){
+	if(slotsByName[selectedSlot].assetEquipped != 'None'){//if slot has asset equipped, change asset's equipped status to 0
+		assetsById[slotsByName[selectedSlot].assetEquipped].equipped = 0; 
+	}
+
+	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
+
+	if(selectedAsset != 'None'){ //if the selected asset isn't 0
+		
+		$('#hsl_sliders').show();
+		
+		slotsByName[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
+		
+		assetsById[selectedAsset].equipped = 1; //update new asset equipped status
+	}
+	else{
+		
+		slotsByName[selectedSlot].assetEquipped = 'None'; //insert the id string of the new asset
+		
+		$('#hsl_sliders').hide();
+	}
+	
+	drawArrayById = []; //clear out draw array
+	
+	drawArrayById = createDrawArrayById(drawArrayById, slotTree); //create a new draw array
+
+	getImageData(drawArrayById,drawCharacter);//getImageData
+
+	createTrimSelector();
+}
+
+
+function createAssetSelector(){
+	
+	selectedSlot = $('#slot_selector').val();
+	
+	selectedAsset = slotsByName[selectedSlot].assetEquipped; //update selected asset, according to slot object	
+	
+	var array = [];
+
+	array.push({
+		name: 'None',
+		value: 'None',
+		class: 'asset empty'
+	});
+
+	if(!$.isEmptyObject(slotsByName[selectedSlot].assets)) { //if there are assets in object, add them to array
+
+		for (var id in slotsByName[selectedSlot].assets){
+			array.push({
+				name: slotsByName[selectedSlot].assets[id].name,
+				value: id,
+				class: 'asset'
+			});
+		}
+	}
+	
+	insertOptions('#asset_selector', array); //insert options into asset_selector
+
+	$('#asset_selector').val(selectedAsset); //select the asset which is equipped
+
+	if(selectedAsset != 'None') {
+
+		updateOutput(assetsById[slotsByName[selectedSlot].assetEquipped]); //pass the asset object into updateOutput
+
+		$('#hsl_sliders').show();
+	}	
+	else {
+
+		$('#hsl_sliders').hide();
+	}
+
+	createTrimSelector();
+}
+
 
 function insertOptions(idString, arr){ //insert options into element specified by id
 
@@ -252,7 +306,7 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 	}
 
 	//add assets
-	if(slotsByName.assetEquipped) {
+	if(slotsByName.assetEquipped != 'None') {
 		array.push(assetsById[slotsByName.assetEquipped]); 
 	}
 	//add trim objects to array
@@ -389,7 +443,7 @@ function getImageData (arr, callback){
 		(function(j,l){
 
 			if(!arr[j].img) { //if the array doesn't have image data, then get image data, else add to counter
-console.log("drew to canvas");
+
 				//create image element
 				img[j] = new Image();
 

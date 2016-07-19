@@ -16,29 +16,32 @@
 
 		<div id="interface">
 			<div>
-				<select id="equipped_asset_selector">
+				<select id="slot_selector">
 				</select>
-				<select id="group_selector">
-				</select>				
+				<select id="asset_selector">
+				</select>
+				<select id="trim_selector">
+				</select>
 			</div>
 
 			<button type='button' id='applygroup' style="display:none">Apply</button>
+			<div id="hsl_sliders">
+				<div id="hue">
+					Hue
+			        <input id="hueslide" name="hueslide" type="range" min="0" max="360">
+			        <input type="text" id="huetext" name="huetext" class="textbox"><br>
+				</div> 
+				<div id="sat">
+					Saturation
+			        <input id="satslide" name="satslide" type="range" min="0" max="100">
+					<input type="text" id="sattext" name="sattext" class="textbox"><br>
+				</div>
+				<div id="lum">
+					Brightness
+			        <input id="lumslide" name="lumslide" type="range" min="0" max="100">
+			        <input type="text" id="lumtext" name="lumtext" class="textbox"><br>
 
-			<div id="hue">
-				Hue
-		        <input id="hueslide" name="hueslide" type="range" min="0" max="360">
-		        <input type="text" id="huetext" name="huetext" class="textbox"><br>
-			</div> 
-			<div id="sat">
-				Saturation
-		        <input id="satslide" name="satslide" type="range" min="0" max="100">
-				<input type="text" id="sattext" name="sattext" class="textbox"><br>
-			</div>
-			<div id="lum">
-				Brightness
-		        <input id="lumslide" name="lumslide" type="range" min="0" max="100">
-		        <input type="text" id="lumtext" name="lumtext" class="textbox"><br>
-
+				</div>
 			</div>
 		</div>
 	</div>
