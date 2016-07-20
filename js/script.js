@@ -180,7 +180,6 @@ $(document).ready( function(){
 	});
 });
 
-//NOW IMPLIMENT FUNCTIONALITY
 
 //when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
 $('#slot_selector').change(function(){
@@ -193,21 +192,65 @@ $('#asset_selector').change( function(){//when the asset selector is changed
 });
 
 
+$('#trim_toggle').on('click', function(){
+console.log('continue here');
+
+	trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
+
+	if(trimsById[selectedTrim].equipped){
+		$('#trim_toggle').html('Remove Trim')
+	} else {
+		$('#trim_toggle').html('Add Trim')
+	}
+	
+	drawArrayById = [];
+
+	drawArrayById = createDrawArrayById(drawArrayById, slotTree);
+	
+	getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
+
+});
 
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
 
+
+
+
 function createTrimSelector(){
-console.log("Finish createTrimSelector");
 
 	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
-		$('#trim_selector').show();
+		
+		var listarray = [];
+
+		for(key in assetsById[selectedAsset].trims){
+			listarray.push({
+				name: assetsById[selectedAsset].trims[key].name,
+				value: assetsById[selectedAsset].trims[key].id,
+				class: "trims"
+			})
+		}
+
+		insertOptions("#trim_selector", listarray);
+
+		selectedTrim = $('#trim_selector').val();
+
+		if(selectedTrim != 'None'){
+			if(trimsById[selectedTrim].equipped){
+				$('#trim_toggle').html('Remove Trim')
+			} else {
+				$('#trim_toggle').html('Add Trim')
+			}
+		}
+
+		$('#trim_div').show();
 	}
 	else{
-		$('#trim_selector').hide();
+		$('#trim_div').hide();
 	}
 }
+
 
 function updateAsset(){
 	if(slotsByName[selectedSlot].assetEquipped != 'None'){//if slot has asset equipped, change asset's equipped status to 0
@@ -234,6 +277,8 @@ function updateAsset(){
 	drawArrayById = []; //clear out draw array
 	
 	drawArrayById = createDrawArrayById(drawArrayById, slotTree); //create a new draw array
+
+	console.log(drawArrayById.length);
 
 	getImageData(drawArrayById,drawCharacter);//getImageData
 
@@ -285,7 +330,7 @@ function createAssetSelector(){
 }
 
 
-function insertOptions(idString, arr){ //insert options into element specified by id
+function insertOptions(elementId, arr){ //insert options into element specified by id
 
 	var s = "";
 
@@ -296,7 +341,7 @@ function insertOptions(idString, arr){ //insert options into element specified b
 		s += ">" + arr[i].name + "</option>";
 	}
 
-	$(idString).html(s);
+	$(elementId).html(s);
 }
 
 function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
@@ -317,7 +362,6 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 			for(var i = 0, i_len = slotsByName.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
 
 				array.push(trimsById[slotsByName.trimsEquipped[key][i]]);
-
 			}
 		}
 	}
