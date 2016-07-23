@@ -1,4 +1,4 @@
-id,name,parentAsset,trimPlacement,order,position,removable,equipped,x,y,w,h,hue,sat,lum,location,filename
-tm00001,Back Shoe Trim,hm00012,bFootUnder,0,a,0,1,275,626,80,43,0,50,50,assets/armor_pose_01,leather_backfoottrim_01.png
-tm00002,Front Shoe Trim,hm00013,fFootUnder,0,a,0,1,396,610,72,56,0,50,50,assets/armor_pose_01,leather_frontfoottrim_01.png
-tm00003,Front Shoulder Skin Trim,hm00002,body,0,a,0,1,397,235,47,57,34,42,60,assets/body_pose_01,body_frontarm_01_shouldertrim.png
+id,name,type,parentAsset,trimPlacement,order,position,removable,equipped,x,y,w,h,hue,sat,lum,location,filename
+tm00001,Back Shoe Trim,trim,hm00012,bFootUnder,0,a,0,1,275,626,80,43,0,50,50,assets/armor_pose_01,leather_backfoottrim_01.png
+tm00002,Front Shoe Trim,trim,hm00013,fFootUnder,0,a,0,1,396,610,72,56,0,50,50,assets/armor_pose_01,leather_frontfoottrim_01.png
+tm00003,Front Shoulder Skin Trim,trim,hm00002,body,0,a,0,1,397,235,47,57,34,42,60,assets/body_pose_01,body_frontarm_01_shouldertrim.png

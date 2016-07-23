@@ -1,18 +1,18 @@
-id,name,slot,position,removable,equipped,x,y,w,h,hue,sat,lum,location,filename
-hm00007,Back Arm,bArm,a,0,1,188,233,135,155,34,42,60,assets/body_pose_01,body_back_arm_01.png
-hm00011,Back Arm Mail,bArmUnder,a,1,0,198,235,122,151,0,50,50,assets/armor_pose_01,chainmail_backarm_01.png
-hm00018,Back Arm Cloth,bArmUnder,a,1,0,200,235,120,151,0,50,50,assets/armor_pose_01,cloth_backarm_01.png
-hm00012,Back Shoe Leather,bFootUnder,a,1,1,207,635,146,197,0,50,50,assets/armor_pose_01,leather_backfoot_01.png
-hm00006,Back Hand,bHand,a,0,1,153,331,61,67,34,42,60,assets/body_pose_01,body_back_hand_01.png
-hm00001,Body,body,a,0,1,211,178,290,656,34,42,60,assets/body_pose_01,body_body_01.png
-hm00009,Chest Mail,chestUnder,a,1,0,276,219,161,231,0,50,50,assets/armor_pose_01,chainmail_chest_01.png
-hm00019,Chest Cloth,chestUnder,a,1,0,276,219,161,231,0,50,50,assets/armor_pose_01,cloth_chest_01.png
-hm00003,Face 1,face,a,0,1,307,144,66,90,34,42,60,assets/body_pose_01,body_face01.png
-hm00002,Front Arm,fArm,a,0,1,363,242,123,250,34,42,60,assets/body_pose_01,body_frontarm_01.png
-hm00008,Front Arm Mail,fArmUnder,a,1,0,404,236,82,199,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png
-hm00017,Front Arm Cloth,fArmUnder,a,1,0,404,237,84,198,0,50,50,assets/armor_pose_01,cloth_frontarm_01.png
-hm00013,Front Shoe Leather,fFootUnder,a,1,1,401,618,102,218,0,50,50,assets/armor_pose_01,leather_frontfoot_01.png
-hm00005,Head,head,a,0,1,306,121,80,105,34,42,60,assets/body_pose_01,body_head_01.png
-hm00004,Loin Cloth,pantsUnder,a,0,1,276,415,135,102,200,50,50,assets/body_pose_01,loincloth.png
-hm00016,Cloth Pants,pantsUnder,a,1,1,259,411,229,373,0,50,50,assets/armor_pose_01,cloth_pants_01.png
-hm00010,Mail Skirt,skirtUnder,a,1,0,257,427,182,130,0,50,50,assets/armor_pose_01,chainmail_skirt_01.png
+id,name,slot,type,position,removable,equipped,x,y,w,h,hue,sat,lum,location,filename
+hm00007,Back Arm,bArm,asset,a,0,1,188,233,135,155,34,42,60,assets/body_pose_01,body_back_arm_01.png
+hm00011,Back Arm Mail,bArmUnder,asset,a,1,0,198,235,122,151,0,50,50,assets/armor_pose_01,chainmail_backarm_01.png
+hm00018,Back Arm Cloth,bArmUnder,asset,a,1,0,200,235,120,151,0,50,50,assets/armor_pose_01,cloth_backarm_01.png
+hm00012,Back Shoe Leather,bFootUnder,asset,a,1,1,207,635,146,197,0,50,50,assets/armor_pose_01,leather_backfoot_01.png
+hm00006,Back Hand,bHand,asset,a,0,1,153,331,61,67,34,42,60,assets/body_pose_01,body_back_hand_01.png
+hm00001,Body,body,asset,a,0,1,211,178,290,656,34,42,60,assets/body_pose_01,body_body_01.png
+hm00009,Chest Mail,chestUnder,asset,a,1,0,276,219,161,231,0,50,50,assets/armor_pose_01,chainmail_chest_01.png
+hm00019,Chest Cloth,chestUnder,asset,a,1,0,276,219,161,231,0,50,50,assets/armor_pose_01,cloth_chest_01.png
+hm00003,Face 1,face,asset,a,0,1,307,144,66,90,34,42,60,assets/body_pose_01,body_face01.png
+hm00002,Front Arm,fArm,asset,a,0,1,363,242,123,250,34,42,60,assets/body_pose_01,body_frontarm_01.png
+hm00008,Front Arm Mail,fArmUnder,asset,a,1,0,404,236,82,199,0,50,50,assets/armor_pose_01,chainmail_frontarm_01.png
+hm00017,Front Arm Cloth,fArmUnder,asset,a,1,0,404,237,84,198,0,50,50,assets/armor_pose_01,cloth_frontarm_01.png
+hm00013,Front Shoe Leather,fFootUnder,asset,a,1,1,401,618,102,218,0,50,50,assets/armor_pose_01,leather_frontfoot_01.png
+hm00005,Head,head,asset,a,0,1,306,121,80,105,34,42,60,assets/body_pose_01,body_head_01.png
+hm00004,Loin Cloth,pantsUnder,asset,a,0,1,276,415,135,102,200,50,50,assets/body_pose_01,loincloth.png
+hm00016,Cloth Pants,pantsUnder,asset,a,1,1,259,411,229,373,0,50,50,assets/armor_pose_01,cloth_pants_01.png
+hm00010,Mail Skirt,skirtUnder,asset,a,1,0,257,427,182,130,0,50,50,assets/armor_pose_01,chainmail_skirt_01.png

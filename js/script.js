@@ -7,13 +7,17 @@
 var slotsByName = {},
 assetsById = {}, 
 trimsById = {},
-drawArrayById = [],
+imageArrayById = [],
 groupArray = [],
 selOptions = [],
 selectedSlot = "",
 selectedAsset = "",
-selectedTrim = "",
-colorTarget = ""; 
+selectedTrim = "";
+
+colorTarget = {
+	targetObject: '',
+	id: ''
+} 
 
 
 var slotTree = {
@@ -160,9 +164,9 @@ $(document).ready( function(){
 
 	//now that's done, create array for layers to draw
 
-		drawArrayById = createDrawArrayById(drawArrayById, slotTree);
+		imageArrayById = createimageArrayById(imageArrayById, slotTree);
 
-		console.log(drawArrayById);
+		console.log(imageArrayById);
 
 		//build selOptions array
 		for(var key in slotsByName){	
@@ -179,30 +183,133 @@ $(document).ready( function(){
 		selectedSlot = $('#slot_selector').val(); //update selected slot
 
 		createAssetSelector();
+		
+		colorTarget = { targetObject : assetsById,	id : selectedAsset};
 
-		getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
+		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 
 	});
+	//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
+	$('#slot_selector').change(function(){
+		createAssetSelector();
+		colorTarget = { targetObject : assetsById,	id : selectedAsset};
+	});
+
+	$('#asset_selector').change( function(){//when the asset selector is changed
+		updateAsset();
+		colorTarget = { targetObject : assetsById, id : selectedAsset};
+	});
+
+	$('#trim_toggle').on('click', function(){
+		trimToggle();
+		colorTarget = { targetObject : trimsById, id : selectedTrim};
+	});
+
+	$('#trim_selector').focus(function(){
+		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+	});
+
+	$('#asset_selector').focus(function(){
+		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+	});
+
+	$('.hsl_sliders').change(function(){
+
+		//update values in asset
+		colorTarget.targetObject[colorTarget.id].hue = $("#hueslide").val();
+		colorTarget.targetObject[colorTarget.id].sat = $("#satslide").val();
+		colorTarget.targetObject[colorTarget.id].lum = $("#lumslide").val();
+
+		updateOutput(colorTarget.targetObject[colorTarget.id]);
+
+		drawCharacter(imageArrayById);
+	});
+
+	$('.hsl_text').change(function(){
+
+		//update values in asset
+		colorTarget.targetObject[colorTarget.id].hue = $("#huetext").val();
+		colorTarget.targetObject[colorTarget.id].sat = $("#sattext").val();
+		colorTarget.targetObject[colorTarget.id].lum = $("#lumtext").val();
+
+		updateOutput(colorTarget.targetObject[colorTarget.id]);
+
+		drawCharacter(imageArrayById);
+
+	});
+
+	//clickable selectivity
+	var canvas = document.getElementById('canvas'),
+	    canLeft = canvas.offsetLeft,
+	    canTop = canvas.offsetTop;
+
+	    canvas.addEventListener('click', function(event){
+
+	    	var x = event.pageX - canLeft,
+	    	y = event.pageY - canTop;
+
+	    	//adjust for responsive height
+	    	x = Math.floor(x * canvas.width / $('#canvas').width());
+	    	y = Math.floor(y * canvas.height / $('#canvas').height());
+
+		for(var l = imageArrayById.length, i = l - 1; i >= 0; i--){ //iterate down array
+
+			if( x >= imageArrayById[i].x &&
+				x <= imageArrayById[i].x + imageArrayById[i].w &&
+				y >= imageArrayById[i].y &&
+				y <= imageArrayById[i].y + imageArrayById[i].h ) { //check if mouse is in bounds of asset
+
+				if( imageArrayById[i].img.data[4 *(x - imageArrayById[i].x + imageArrayById[i].w * (y - imageArrayById[i].y)) + 3] ) { //if pixel alpha 
+
+					if(imageArrayById[i].type == 'trim'){ //if it's a trim
+
+						$('slot_selector').val(assetsById[imageArrayById[i].parentAsset].slot); //select its parent asset's slot
+
+						selectedSlot = $('#slot_selector').val();
+						
+						createAssetSelector(); //create the asset selector
+						
+						$('#asset_selector').val(assetsById[imageArrayById[i].parentAsset].id); //select its parent asset
+
+						selectedAsset = $('#asset_selector').val();
+
+						createTrimSelector(); //create the trim selector
+
+						$('trim_selector').val(imageArrayById[i].id); //select the trim
+
+						selectedTrim = $('trim_selector').val();
+
+						colorTarget = { targetObject : trimsById,	id : selectedTrim}; //update colortarget
+					}
+					else if(imageArrayById[i].type == 'asset'){
+						
+						$('slot_selector').val(assetsById[imageArrayById[i]].slot); //select asset's slot
+
+						selectedSlot = $('#slot_selector').val();
+
+						createAssetSelector(); //create the asset selector
+
+						$('#asset_selector').val(assetsById[imageArrayById[i]].id); //select the asset
+
+						selectedAsset = $('#asset_selector').val();
+
+						createTrimSelector();
+
+						colorTarget = { targetObject : trimsById,	id : selectedTrim};
+					}
+
+					updateOutput(colorTarget.targetObject[colorTarget.id]);
+					
+					break;
+				}
+			}				
+		}
+	});
+
 });
 
 
-//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
-$('#slot_selector').change(function(){
-	createAssetSelector();
-});
 
-
-$('#asset_selector').change( function(){//when the asset selector is changed
-	updateAsset();
-});
-
-
-$('#trim_toggle').on('click', function(){
-	trimToggle();
-});
-
-
-console.log("Use colorTarget to work in color");
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
@@ -218,13 +325,13 @@ function trimToggle(){
 		$('#trim_toggle').html('Add Trim')
 	}
 	
-	drawArrayById = [];
+	imageArrayById = [];
 
-	drawArrayById = createDrawArrayById(drawArrayById, slotTree);
+	imageArrayById = createimageArrayById(imageArrayById, slotTree);
 	
-//	console.log(drawArrayById);
+//	console.log(imageArrayById);
 	
-	getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
+	getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 }
 
 
@@ -293,12 +400,11 @@ function clearTrims(assetId){ //removes all trims of an asset from slots
 
 function updateAsset(){
 
-	if(slotsByName[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
-		clearTrims(slotsByName[selectedSlot].assetEquipped);
-	}
-
-
 	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
+
+	if(slotsByName[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
+		clearTrims(slotsByName[selectedSlot].assetEquipped); //clear currently equipped ass trims
+	}
 
 	if(selectedAsset != 'None'){ //if the selected asset isn't None
 		
@@ -317,11 +423,11 @@ function updateAsset(){
 		$('#hsl_sliders').hide();
 	}
 	
-	drawArrayById = []; //clear out draw array
+	imageArrayById = []; //clear out draw array
 	
-	drawArrayById = createDrawArrayById(drawArrayById, slotTree); //create a new draw array
+	imageArrayById = createimageArrayById(imageArrayById, slotTree); //create a new draw array
 
-	getImageData(drawArrayById,drawCharacter);//getImageData
+	getImageData(imageArrayById,drawCharacter);//getImageData
 
 	createTrimSelector();
 }
@@ -333,8 +439,6 @@ function createAssetSelector(){
 	
 	selectedAsset = slotsByName[selectedSlot].assetEquipped; //update selected asset, according to slot object	
 	
-	colorTarget = selectedAsset;
-
 	var array = [];
 
 	array.push({
@@ -387,10 +491,10 @@ function insertOptions(elementId, arr){ //insert options into element specified 
 	$(elementId).html(s);
 }
 
-function createDrawArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
+function createimageArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
 
-	for(var i = 0, i_len = slotsByName.childrenBelow.length; i < i_len; i++){ //first iterate along drawArrayById's childrenBelow
-		createDrawArrayById(array, slotsByName.childrenBelow[i]);
+	for(var i = 0, i_len = slotsByName.childrenBelow.length; i < i_len; i++){ //first iterate along imageArrayById's childrenBelow
+		createimageArrayById(array, slotsByName.childrenBelow[i]);
 	}
 
 	//add assets
@@ -411,7 +515,7 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 	}
 
 	for (var i = 0, i_len = slotsByName.childrenAbove.length; i < i_len; i++) {
-		createDrawArrayById(array, slotsByName.childrenAbove[i]);
+		createimageArrayById(array, slotsByName.childrenAbove[i]);
 	}
 
 //console.log(array);
