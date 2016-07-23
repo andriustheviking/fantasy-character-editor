@@ -12,7 +12,8 @@ groupArray = [],
 selOptions = [],
 selectedSlot = "",
 selectedAsset = "",
-selectedTrim = ""; 
+selectedTrim = "",
+colorTarget = ""; 
 
 
 var slotTree = {
@@ -147,7 +148,7 @@ $(document).ready( function(){
 			assetsById[parentId].trims[id] = trimsById[id]; //add trims to asset objects
 
 			if (assetsById[parentId].equipped){ //add the trims to their place
-	//console.log(assetsById[parentId]);
+	
 				var slot = slotsByName[trimsById[id].trimPlacement];
 
 				if(!slot.trimsEquipped[parentId]){
@@ -160,6 +161,8 @@ $(document).ready( function(){
 	//now that's done, create array for layers to draw
 
 		drawArrayById = createDrawArrayById(drawArrayById, slotTree);
+
+		console.log(drawArrayById);
 
 		//build selOptions array
 		for(var key in slotsByName){	
@@ -174,6 +177,8 @@ $(document).ready( function(){
 		insertOptions('#slot_selector', selOptions); //insert options into slot_selector element
 
 		selectedSlot = $('#slot_selector').val(); //update selected slot
+
+		createAssetSelector();
 
 		getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
 
@@ -193,19 +198,23 @@ $('#asset_selector').change( function(){//when the asset selector is changed
 
 
 $('#trim_toggle').on('click', function(){
-console.log('continue here');
+	trimToggle();
+});
+
+
+console.log("Use colorTarget to work in color");
+
+/**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
+
+function trimToggle(){
 
 	trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
 
+	updateTrims(selectedAsset);
 
-
-	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and add it to its slot
-	
+	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button
 		$('#trim_toggle').html('Remove Trim')
-	
-		slotsByName[trimsById[selectedTrim].trimPlacement].trimsEquipped[trimsById[selectedTrim].parentAsset][trimsById[selectedTrim].order] = trimsById[selectedTrim];
-	
-	} else { //otherwise remove it from its slot
+	} else { //otherwise insert blank
 		$('#trim_toggle').html('Add Trim')
 	}
 	
@@ -213,14 +222,10 @@ console.log('continue here');
 
 	drawArrayById = createDrawArrayById(drawArrayById, slotTree);
 	
+//	console.log(drawArrayById);
+	
 	getImageData(drawArrayById,drawCharacter);	//get imagedata and draw image
-
-});
-
-
-/**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
-
-
+}
 
 
 
@@ -257,21 +262,53 @@ function createTrimSelector(){
 	}
 }
 
+function updateTrims(assetId){ //inserts all equipped trims of an asset, and removes unequipped trims
+
+	if(assetsById[assetId].trims) { //if asset has trims
+
+		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
+			if(trimsById[trimId].equipped){
+				if(!slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId]){ //if there isn't an object for the asset's trims in the slot, then make one
+					slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId] = [];
+				}
+				slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = trimId; //insert the trim in its appropriate place
+			}	
+			else{
+				if(slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
+					slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = ""; //insert blank string
+			}
+		}
+	}
+}
+
+function clearTrims(assetId){ //removes all trims of an asset from slots
+
+	if(assetsById[assetId].trims) { //if asset has trims
+		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
+			if(slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
+				delete slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId]; //delete all trims for that asset from slot
+		}
+	}
+}
 
 function updateAsset(){
-	if(slotsByName[selectedSlot].assetEquipped != 'None'){//if slot has asset equipped, change asset's equipped status to 0
-		assetsById[slotsByName[selectedSlot].assetEquipped].equipped = 0; 
+
+	if(slotsByName[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
+		clearTrims(slotsByName[selectedSlot].assetEquipped);
 	}
+
 
 	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
 
-	if(selectedAsset != 'None'){ //if the selected asset isn't 0
+	if(selectedAsset != 'None'){ //if the selected asset isn't None
 		
 		$('#hsl_sliders').show();
 		
 		slotsByName[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
 		
 		assetsById[selectedAsset].equipped = 1; //update new asset equipped status
+
+		updateTrims(selectedAsset);
 	}
 	else{
 		
@@ -283,8 +320,6 @@ function updateAsset(){
 	drawArrayById = []; //clear out draw array
 	
 	drawArrayById = createDrawArrayById(drawArrayById, slotTree); //create a new draw array
-
-	console.log(drawArrayById.length);
 
 	getImageData(drawArrayById,drawCharacter);//getImageData
 
@@ -298,6 +333,8 @@ function createAssetSelector(){
 	
 	selectedAsset = slotsByName[selectedSlot].assetEquipped; //update selected asset, according to slot object	
 	
+	colorTarget = selectedAsset;
+
 	var array = [];
 
 	array.push({
@@ -358,7 +395,7 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 
 	//add assets
 	if(slotsByName.assetEquipped != 'None') {
-		array.push(assetsById[slotsByName.assetEquipped]); 
+		array.push(assetsById[slotsByName.assetEquipped]);
 	}
 	//add trim objects to array
 	if(slotsByName.trimsEquipped){ 
@@ -366,8 +403,9 @@ function createDrawArrayById(array, slotsByName){//recursively iterates through 
 		for(var key in slotsByName.trimsEquipped){ //iterate through each group of trims equipped
 
 			for(var i = 0, i_len = slotsByName.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
-
-				array.push(trimsById[slotsByName.trimsEquipped[key][i]]);
+				if(trimsById[slotsByName.trimsEquipped[key][i]]) {
+					array.push(trimsById[slotsByName.trimsEquipped[key][i]]);
+				}
 			}
 		}
 	}
