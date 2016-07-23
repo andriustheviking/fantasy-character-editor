@@ -197,9 +197,15 @@ console.log('continue here');
 
 	trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
 
-	if(trimsById[selectedTrim].equipped){
+
+
+	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and add it to its slot
+	
 		$('#trim_toggle').html('Remove Trim')
-	} else {
+	
+		slotsByName[trimsById[selectedTrim].trimPlacement].trimsEquipped[trimsById[selectedTrim].parentAsset][trimsById[selectedTrim].order] = trimsById[selectedTrim];
+	
+	} else { //otherwise remove it from its slot
 		$('#trim_toggle').html('Add Trim')
 	}
 	
