@@ -14,6 +14,7 @@ selectedSlot = "",
 selectedAsset = "",
 selectedTrim = "";
 
+//colorTarget is target of HSL sliders
 colorTarget = {
 	targetObject: '',
 	id: ''
@@ -205,6 +206,25 @@ $(document).ready( function(){
 		colorTarget = { targetObject : trimsById, id : selectedTrim};
 	});
 
+	$('#trim_selector').change(function(){
+		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+
+		selectedTrim = $(this).val();
+
+		if(selectedTrim == "None" || !selectedTrim) { //if nothing selected
+
+			colorTarget = { targetObject : assetsById,	id : selectedAsset}; //target asset
+
+			updateOutput(colorTarget.targetObject[colorTarget.id]);
+
+		} else{
+			
+			colorTarget = { targetObject : trimsById,	id : selectedTrim};
+
+			updateOutput(colorTarget.targetObject[colorTarget.id]);
+		}
+	});
+
 	$('#trim_selector').focus(function(){
 		colorTarget = { targetObject : trimsById,	id : selectedTrim};
 	});
@@ -214,28 +234,11 @@ $(document).ready( function(){
 	});
 
 	$('.hsl_sliders').change(function(){
-
-		//update values in asset
-		colorTarget.targetObject[colorTarget.id].hue = $("#hueslide").val();
-		colorTarget.targetObject[colorTarget.id].sat = $("#satslide").val();
-		colorTarget.targetObject[colorTarget.id].lum = $("#lumslide").val();
-
-		updateOutput(colorTarget.targetObject[colorTarget.id]);
-
-		drawCharacter(imageArrayById);
+		changeColor(this);
 	});
 
 	$('.hsl_text').change(function(){
-
-		//update values in asset
-		colorTarget.targetObject[colorTarget.id].hue = $("#huetext").val();
-		colorTarget.targetObject[colorTarget.id].sat = $("#sattext").val();
-		colorTarget.targetObject[colorTarget.id].lum = $("#lumtext").val();
-
-		updateOutput(colorTarget.targetObject[colorTarget.id]);
-
-		drawCharacter(imageArrayById);
-
+		changeColor(this);
 	});
 
 	//clickable selectivity
@@ -243,75 +246,68 @@ $(document).ready( function(){
 	    canLeft = canvas.offsetLeft,
 	    canTop = canvas.offsetTop;
 
-	    canvas.addEventListener('click', function(event){
+	canvas.addEventListener('click', function(event){
 
-	    	var x = event.pageX - canLeft,
-	    	y = event.pageY - canTop;
+		clickSelect(canvas,canLeft,canTop);
 
-	    	//adjust for responsive height
-	    	x = Math.floor(x * canvas.width / $('#canvas').width());
-	    	y = Math.floor(y * canvas.height / $('#canvas').height());
-
-		for(var l = imageArrayById.length, i = l - 1; i >= 0; i--){ //iterate down array
-
-			if( x >= imageArrayById[i].x &&
-				x <= imageArrayById[i].x + imageArrayById[i].w &&
-				y >= imageArrayById[i].y &&
-				y <= imageArrayById[i].y + imageArrayById[i].h ) { //check if mouse is in bounds of asset
-
-				if( imageArrayById[i].img.data[4 *(x - imageArrayById[i].x + imageArrayById[i].w * (y - imageArrayById[i].y)) + 3] ) { //if pixel alpha 
-
-					if(imageArrayById[i].type == 'trim'){ //if it's a trim
-
-						$('slot_selector').val(assetsById[imageArrayById[i].parentAsset].slot); //select its parent asset's slot
-
-						selectedSlot = $('#slot_selector').val();
-						
-						createAssetSelector(); //create the asset selector
-						
-						$('#asset_selector').val(assetsById[imageArrayById[i].parentAsset].id); //select its parent asset
-
-						selectedAsset = $('#asset_selector').val();
-
-						createTrimSelector(); //create the trim selector
-
-						$('trim_selector').val(imageArrayById[i].id); //select the trim
-
-						selectedTrim = $('trim_selector').val();
-
-						colorTarget = { targetObject : trimsById,	id : selectedTrim}; //update colortarget
-					}
-					else if(imageArrayById[i].type == 'asset'){
-						
-						$('slot_selector').val(assetsById[imageArrayById[i]].slot); //select asset's slot
-
-						selectedSlot = $('#slot_selector').val();
-
-						createAssetSelector(); //create the asset selector
-
-						$('#asset_selector').val(assetsById[imageArrayById[i]].id); //select the asset
-
-						selectedAsset = $('#asset_selector').val();
-
-						createTrimSelector();
-
-						colorTarget = { targetObject : trimsById,	id : selectedTrim};
-					}
-
-					updateOutput(colorTarget.targetObject[colorTarget.id]);
-					
-					break;
-				}
-			}				
-		}
 	});
 
 });
 
 
-
+console.log('create trimselect functionality');
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
+
+
+function changeColor(element){
+
+		var inputName = $(element).attr('name');
+		
+		colorTarget.targetObject[colorTarget.id][inputName] = $("#" + inputName + $(element).attr('type')).val(); //update values in asset
+
+		updateOutput(colorTarget.targetObject[colorTarget.id]);
+
+		drawCharacter(imageArrayById);
+}
+
+function clickSelect(canvas,canLeft,canTop){
+
+	var x = event.pageX - canLeft,
+	y = event.pageY - canTop;
+
+	//adjust for responsive height
+	x = Math.floor(x * canvas.width / $('#canvas').width());
+	y = Math.floor(y * canvas.height / $('#canvas').height());
+
+	for(var l = imageArrayById.length, i = l - 1; i >= 0; i--){ //iterate down array
+		
+		//check if mouse is in bounds of asset
+		if( x >= imageArrayById[i].x &&
+			x <= imageArrayById[i].x + imageArrayById[i].w &&
+			y >= imageArrayById[i].y &&
+			y <= imageArrayById[i].y + imageArrayById[i].h ) { 
+
+			if( imageArrayById[i].img.data[4 *(x - imageArrayById[i].x + imageArrayById[i].w * (y - imageArrayById[i].y)) + 3] ) { //if pixel has alpha 
+
+				if(imageArrayById[i].type == 'trim'){ //if it's a trim
+
+					$('#slot_selector').val(assetsById[imageArrayById[i].parentAsset].slot).change(); //select its parent asset's slot and trigger change event
+
+					$('#trim_selector').val(imageArrayById[i].id).change(); //select the trim and trigger change();
+				}
+				else if(imageArrayById[i].type == 'asset'){
+					
+					selectedSlot = imageArrayById[i].slot;					
+
+					$('#slot_selector').val(imageArrayById[i].slot).change(); //select asset's slot and trigger chagne event
+				}
+
+				break;
+			}
+		}				
+	}
+}
 
 function trimToggle(){
 
@@ -319,8 +315,9 @@ function trimToggle(){
 
 	updateTrims(selectedAsset);
 
-	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button
+	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and set colorTarget to trim
 		$('#trim_toggle').html('Remove Trim')
+		colorTarget = { targetObject : trimsById, id : selectedTrim};
 	} else { //otherwise insert blank
 		$('#trim_toggle').html('Add Trim')
 	}
@@ -336,7 +333,7 @@ function trimToggle(){
 
 
 
-function createTrimSelector(){
+function createTrimSelector(){ //creates dropdown for trims, hids if no trime
 
 	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
 		
@@ -398,7 +395,7 @@ function clearTrims(assetId){ //removes all trims of an asset from slots
 	}
 }
 
-function updateAsset(){
+function updateAsset(){ //triggered when asset_selector is changed. swaps out asset to new one
 
 	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
 
@@ -433,7 +430,7 @@ function updateAsset(){
 }
 
 
-function createAssetSelector(){
+function createAssetSelector(){ //creates the dropdown for the current asset, updates selectedSlot and selectedAsset, launches createTrimSelector
 	
 	selectedSlot = $('#slot_selector').val();
 	
@@ -458,7 +455,7 @@ function createAssetSelector(){
 		}
 	}
 	
-	insertOptions('#asset_selector', array); //insert options into asset_selector
+	insertOptions('#asset_selector', array); //insert options into asset_selector selector element
 
 	$('#asset_selector').val(selectedAsset); //select the asset which is equipped
 
@@ -606,11 +603,11 @@ function csvToObj(text, property) {
 
 function updateOutput(obj){
 
-		$('#hueslide').val( obj.hue );
+		$('#huerange').val( obj.hue );
 		$('#huetext').val( obj.hue );
-		$('#satslide').val( obj.sat );
+		$('#satrange').val( obj.sat );
 		$('#sattext').val( obj.sat );
-		$('#lumslide').val( obj.lum );
+		$('#lumrange').val( obj.lum );
 		$('#lumtext').val( obj.lum );
 }
 
