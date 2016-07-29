@@ -13,7 +13,9 @@ selOptions = [],
 selectedSlot = "",
 selectedAsset = "",
 selectedTrim = "",
-shadowsById = {};
+shadowsById = {},
+selectedGroup = "",
+allAssets = {};
 
 //colorTarget is target of HSL sliders
 colorTarget = {
@@ -39,9 +41,7 @@ $(document).ready( function(){
 			type: "GET",
 			url: "./csv/slots.csv",
 			dataType: "text",
-
 			success: function (data) { //create an object treee of the slots of the character from slots.csv
-
 				slotsById = csvToObj(data, 'id');
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
@@ -54,7 +54,6 @@ $(document).ready( function(){
 			url: "./csv/asset info.csv",
 			dataType: "text",
 			success: function (data) {
-
 				assetsById = csvToObj(data, "id");
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
@@ -67,7 +66,6 @@ $(document).ready( function(){
 			url: "./csv/trims.csv",
 			dataType: "text",
 			success: function (data) {
-
 				trimsById = csvToObj(data, "id");
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
@@ -80,8 +78,8 @@ $(document).ready( function(){
 			url: "./csv/groups.csv",
 			dataType: "text",
 			success: function(data) {
-
-				groupArray = parseSlotGroups(data);
+				groupArray = parseGroupsCsv(data);
+				console.log(groupArray);
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
 			    console.log(status + err + ": could not load group info");
@@ -94,6 +92,9 @@ $(document).ready( function(){
 			dataType: 'text',
 			success: function(data){
 				shadowsById = csvToObj(data,'id');
+			},
+			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
+			    console.log(status + err + ": could not load shadow info");
 			}
 		})
 	).done( function(){
@@ -177,6 +178,8 @@ $(document).ready( function(){
 
 		imageArrayById = createimageArrayById(imageArrayById, slotTree);
 
+		selOptions = []; //clear out select options
+
 		//build selOptions array
 		for(var key in slotsById){	
 		    
@@ -187,58 +190,80 @@ $(document).ready( function(){
 			});								
 		}	
 
+		selOptions.sort(function(a,b){ //sort by alphabetical order
+			var nameA = a.name.toUpperCase(); // ignore upper and lowercase
+			var nameB = b.name.toUpperCase(); // ignore upper and lowercase
+			if (nameA < nameB) {
+			return -1;
+			}
+			if (nameA > nameB) {
+			return 1;
+			}
+			// names must be equal
+			return 0;
+		});
+
+		$.extend(allAssets, assetsById, trimsById);
+
 		insertOptions('#slot_selector', selOptions); //insert options into slot_selector element
 
 		selectedSlot = $('#slot_selector').val(); //update selected slot
 
-		createAssetSelector();
+		populateAssetSelector();
 		
 		colorTarget = { targetObject : assetsById,	id : selectedAsset};
+
+		populateGroupSelector();
 
 		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 
 	});
 	//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
 	$('#slot_selector').change(function(){
-		createAssetSelector();
+		populateAssetSelector();
 		colorTarget = { targetObject : assetsById,	id : selectedAsset};
+		updateColorTargetElement();
 	});
 
 	$('#asset_selector').change( function(){//when the asset selector is changed
 		updateAsset();
 		colorTarget = { targetObject : assetsById, id : selectedAsset};
+		updateColorTargetElement();
 	});
 
 	$('#trim_toggle').on('click', function(){
 		trimToggle();
 		colorTarget = { targetObject : trimsById, id : selectedTrim};
+		updateColorTargetElement();
 	});
 
 	$('#trim_selector').change(function(){
-		colorTarget = { targetObject : trimsById,	id : selectedTrim};
 
+		colorTarget = { targetObject : trimsById,	id : selectedTrim};
 		selectedTrim = $(this).val();
 
 		if(selectedTrim == "None" || !selectedTrim) { //if nothing selected
 
 			colorTarget = { targetObject : assetsById,	id : selectedAsset}; //target asset
-
+			updateColorTargetElement();
 			updateOutput(colorTarget.targetObject[colorTarget.id]);
 
 		} else{
 			
 			colorTarget = { targetObject : trimsById,	id : selectedTrim};
-
+			updateColorTargetElement();
 			updateOutput(colorTarget.targetObject[colorTarget.id]);
 		}
 	});
 
 	$('#trim_selector').focus(function(){
 		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+		updateColorTargetElement();
 	});
 
 	$('#asset_selector').focus(function(){
 		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+		updateColorTargetElement();
 	});
 
 	$('.hsl_sliders').change(function(){
@@ -247,6 +272,21 @@ $(document).ready( function(){
 
 	$('.hsl_text').change(function(){
 		changeColor(this);
+	});
+
+	$('#group_selector').change(function(){
+		populateGroupAssetSelector();
+
+		selectedGroup = $('#group_selector').val();
+
+		colorTarget = { targetObject : groupArray,	id : selectedGroup};
+		updateColorTargetElement();
+	});
+
+	$('#group_selector').focus(function(){
+		selectedGroup = $('#group_selector').val();
+		colorTarget = { targetObject : groupArray,	id : selectedGroup};
+		updateColorTargetElement();
 	});
 
 	//clickable selectivity
@@ -264,6 +304,42 @@ $(document).ready( function(){
 
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
+
+function updateColorTargetElement(){
+	$('#color_target').html(colorTarget.targetObject[colorTarget.id].name);
+}
+
+function populateGroupSelector() {
+
+	var array = [];
+	for (var i = 0, i_len = groupArray.length; i < i_len; i++){
+		array.push({
+			name: groupArray[i].name,
+			value: i,
+			class: "groupoption"
+		});
+	}
+	insertOptions('#group_selector',array);
+
+	populateGroupAssetSelector();
+}
+
+function populateGroupAssetSelector() {
+
+	var list = groupArray[$('#group_selector').val()].list;
+
+	var array = [];
+	for (var i = 0, i_len = list.length; i < i_len; i++){
+		array.push({
+			value: list[i],
+			name: allAssets[list[i]].name,
+			class:"groupoptionassets"
+		});
+	}
+
+	insertOptions('#group_asset_selector', array);
+
+}
 
 
 function changeColor(element){ //takes the 'type' of the input (Hue, Sat or Lum) and name of input to determine which value to change
@@ -332,14 +408,12 @@ function trimToggle(){
 
 	imageArrayById = createimageArrayById(imageArrayById, slotTree);
 	
-//	console.log(imageArrayById);
-	
 	getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 }
 
 
 
-function createTrimSelector(){ //creates dropdown for trims, hids if no trime
+function populateTrimSelector(){ //creates dropdown for trims, hids if no trime
 
 	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
 		
@@ -432,11 +506,11 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 
 	getImageData(imageArrayById,drawCharacter);//getImageData
 
-	createTrimSelector();
+	populateTrimSelector();
 }
 
 
-function createAssetSelector(){ //creates the dropdown for the current asset, updates selectedSlot and selectedAsset, launches createTrimSelector
+function populateAssetSelector(){ //creates the dropdown for the current asset, updates selectedSlot and selectedAsset, launches populateTrimSelector
 	
 	selectedSlot = $('#slot_selector').val();
 	
@@ -476,7 +550,7 @@ function createAssetSelector(){ //creates the dropdown for the current asset, up
 		$('#hsl_sliders').hide();
 	}
 
-	createTrimSelector();
+	populateTrimSelector();
 }
 
 
@@ -528,9 +602,7 @@ function createimageArrayById(array, slotsById){//recursively iterates through c
 		createimageArrayById(array, slotsById.childrenAbove[i]);
 	}
 
-//console.log(array);
 	return array;
-
 }
 
 function applyGroupHsl (reference, assets, n){ //applies index n of reference array hsl to asset array
@@ -546,7 +618,7 @@ function applyGroupHsl (reference, assets, n){ //applies index n of reference ar
 	}
 }
 
-function parseSlotGroups (text){ //returns an array of objects {groupName,h,s,l,list}
+function parseGroupsCsv (text){ //returns an array of objects {groupName,h,s,l,list}
 
 	//split up csv lines into array
 	var textLines = text.split(/\r\n|\n/);
@@ -558,21 +630,24 @@ function parseSlotGroups (text){ //returns an array of objects {groupName,h,s,l,
 		//split up textline array into array of csv values
 		var a = textLines[i].split(',');
 
+		if(a[0]) { //a[0] prevents adding empty slots
 
-		if(a[0]) { //the if a[0] prevents adding empty slots
+			var list = [];
 
-			arr[a[0]] = {};
-			//store the class header as object inside object
-			arr[a[0]].hue = a[1];
-			arr[a[0]].sat = a[2];
-			arr[a[0]].lum = a[3];
+			//add list items to 
+			for(var j = 4, ll = a.length; j < ll; j++) { 
+				if(a[j])
+					list.push(a[j]);
+				else
+					break;
+			}
 
-			arr[a[0]].list = [];
-
-			//push the class items into object array
-			for(var j = 4, ll = a.length; j < ll; j++) {
-				
-				arr[a[0]].list.push(a[j]);
+			arr[i] = {
+				name: a[0],
+				hue: a[1],
+				sat: a[2],
+				lum: a[3],
+				list: list
 			}
 		}
 	}
@@ -683,8 +758,6 @@ function getImageData (arr, callback){
 
 function drawCharacter(a){
 
-	console.log(a);
-
 	var canvas = document.getElementById('canvas');
 
 	var ctx = canvas.getContext('2d');
@@ -728,15 +801,13 @@ function drawCharacter(a){
 					if(arrayType == 'shadow'){ //if the array object type is a shadow, then we add RGB equally to only filled pixels
 
 						if(data[p_c + 3] > 0) { // if the canvas has alpha greater than 0, then we need to add shadow rgb to it (to make it darker)
-//CONTINUE HERE
 							// if the shadow is all black, then we reduce (darken) rgba, by 1/3 of the alpha
 							data[p_c + 0] -= a[n].img.data[p_a + 3]/3; //red
 							data[p_c + 1] -= a[n].img.data[p_a + 3]/3; //green
 							data[p_c + 2] -= a[n].img.data[p_a + 3]/3; //blue
 						}
-
 					} 
-					else { //otherwise 
+					else { 
 
 						//break up rgb to hsl, so we can manipulate color
 						var hsl = rgbToHsl( a[n].img.data[p_a + 0], a[n].img.data[p_a + 1], a[n].img.data[p_a + 2]);
@@ -843,8 +914,6 @@ function hslToRgb(h, s, l) {
         g: Math.round(g * 255),
         b: Math.round(b * 255),
     });
-
-	console.log("R: " + r + " G: " + g + " B: " + b);
 }
 
 
