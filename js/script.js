@@ -4,7 +4,7 @@
 //for windows: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --allow-file-access-from-files --disable-web-security
 
 //GLOBALS
-var slotsByName = {},
+var slotsById = {},
 assetsById = {}, 
 trimsById = {},
 imageArrayById = [],
@@ -12,7 +12,8 @@ groupArray = [],
 selOptions = [],
 selectedSlot = "",
 selectedAsset = "",
-selectedTrim = "";
+selectedTrim = "",
+shadowsById = {};
 
 //colorTarget is target of HSL sliders
 colorTarget = {
@@ -41,7 +42,7 @@ $(document).ready( function(){
 
 			success: function (data) { //create an object treee of the slots of the character from slots.csv
 
-				slotsByName = csvToObj(data, 'name');
+				slotsById = csvToObj(data, 'id');
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
 		            console.log(status + err + ": could not load slot info");
@@ -85,35 +86,44 @@ $(document).ready( function(){
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
 			    console.log(status + err + ": could not load group info");
 			}
+		}),
+
+		$.ajax({
+			type: 'GET',
+			url: './csv/shadows.csv',
+			dataType: 'text',
+			success: function(data){
+				shadowsById = csvToObj(data,'id');
+			}
 		})
 	).done( function(){
 
 		//fill out rest of slot object
-		for( var key in slotsByName) { //add empty properties to each slotsByName[key]
-			slotsByName[key].assetEquipped = "None"; //stores id of asset for this slot, if equipped
-			slotsByName[key].assets = {}; // stores (points to) objects for each asset for slot
-			slotsByName[key].childrenAbove = []; // array of children slots above this slot
-			slotsByName[key].childrenBelow = []; // array of children slots below this slot
-			slotsByName[key].trimsEquipped = {}; //array of trims applied to this slot
+		for( var key in slotsById) { //add empty properties to each slotsById[key]
+			slotsById[key].assetEquipped = "None"; //stores id of asset for this slot, if equipped
+			slotsById[key].assets = {}; // stores (points to) objects for each asset for slot
+			slotsById[key].childrenAbove = []; // array of children slots above this slot
+			slotsById[key].childrenBelow = []; // array of children slots below this slot
+			slotsById[key].trimsEquipped = {}; //array of trims applied to this slot
 		}
 
 	// link slot parents / children
-		for( var key in slotsByName) {
+		for( var key in slotsById) {
 
-			var objParent = slotsByName[key].parent;
+			var objParent = slotsById[key].parent;
 
-			if(!slotsByName.hasOwnProperty(key)) continue; //don't include primitive prototypes
+			if(!slotsById.hasOwnProperty(key)) continue; //don't include primitive prototypes
 
 			//add root slots to tree
 			if( objParent == "root"){
-				slotTree.childrenAbove[slotsByName[key].order] = slotsByName[key]; //insert object for key into property of slotTree
+				slotTree.childrenAbove[slotsById[key].order] = slotsById[key]; //insert object for key into property of slotTree
 			}
 			else {
-				if(slotsByName[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
-					slotsByName[objParent].childrenBelow[Math.abs(slotsByName[key].order) - 1] = slotsByName[key]; // (abs - 1, since index must start at 0, and be positive)
+				if(slotsById[key].order < 0){ //if the order of the object of key is <1, then it goes in children.Below of its parent slot
+					slotsById[objParent].childrenBelow[Math.abs(slotsById[key].order) - 1] = slotsById[key]; // (abs - 1, since index must start at 0, and be positive)
 				}
 				else {
-					slotsByName[objParent].childrenAbove[slotsByName[key].order] = slotsByName[key]; //link key to childrenAbove array according to its order property
+					slotsById[objParent].childrenAbove[slotsById[key].order] = slotsById[key]; //link key to childrenAbove array according to its order property
 				}
 			}
 		}
@@ -127,14 +137,14 @@ $(document).ready( function(){
 
 			slot = assetsById[id].slot; //get the id of the slot the asset is assigned
 
-			if(!slotsByName[slot].assets) { //if the slotsByName of the asset doesn't have an asset parameter, make one
-				slotsByName[slot].assets = {};
+			if(!slotsById[slot].assets) { //if the slotsById of the asset doesn't have an asset parameter, make one
+				slotsById[slot].assets = {};
 			}
 
-			slotsByName[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsByName[slot].assets, by its id
+			slotsById[slot].assets[id] = assetsById[id]; //insert assetsById[key] into slotsById[slot].assets, by its id
 
 			if (assetsById[id].equipped){	//if the asset is equipped, then insert its id name into assetEquipped
-				slotsByName[slot].assetEquipped = id;
+				slotsById[slot].assetEquipped = id;
 			}
 		}
 
@@ -154,7 +164,7 @@ $(document).ready( function(){
 
 			if (assetsById[parentId].equipped){ //add the trims to their place
 	
-				var slot = slotsByName[trimsById[id].trimPlacement];
+				var slot = slotsById[trimsById[id].trimPlacement];
 
 				if(!slot.trimsEquipped[parentId]){
 					slot.trimsEquipped[parentId] = []; //adds array for each parent with trims, to store its trims (within the object, slot.trimsEquipped)
@@ -167,14 +177,12 @@ $(document).ready( function(){
 
 		imageArrayById = createimageArrayById(imageArrayById, slotTree);
 
-		console.log(imageArrayById);
-
 		//build selOptions array
-		for(var key in slotsByName){	
+		for(var key in slotsById){	
 		    
 			selOptions.push({
-				name : slotsByName[key].name,
-				value : slotsByName[key].name,					
+				name : slotsById[key].name,
+				value : slotsById[key].id,					
 				class : "slots"		
 			});								
 		}	
@@ -255,12 +263,10 @@ $(document).ready( function(){
 });
 
 
-console.log('create trimselect functionality');
-
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
 
-function changeColor(element){
+function changeColor(element){ //takes the 'type' of the input (Hue, Sat or Lum) and name of input to determine which value to change
 
 		var inputName = $(element).attr('name');
 		
@@ -337,17 +343,17 @@ function createTrimSelector(){ //creates dropdown for trims, hids if no trime
 
 	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
 		
-		var listarray = [];
+		var listArray = [];
 
 		for(key in assetsById[selectedAsset].trims){
-			listarray.push({
+			listArray.push({
 				name: assetsById[selectedAsset].trims[key].name,
 				value: assetsById[selectedAsset].trims[key].id,
 				class: "trims"
 			})
 		}
 
-		insertOptions("#trim_selector", listarray);
+		insertOptions("#trim_selector", listArray);
 
 		selectedTrim = $('#trim_selector').val();
 
@@ -372,14 +378,14 @@ function updateTrims(assetId){ //inserts all equipped trims of an asset, and rem
 
 		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
 			if(trimsById[trimId].equipped){
-				if(!slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId]){ //if there isn't an object for the asset's trims in the slot, then make one
-					slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId] = [];
+				if(!slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId]){ //if there isn't an object for the asset's trims in the slot, then make one
+					slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId] = [];
 				}
-				slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = trimId; //insert the trim in its appropriate place
+				slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = trimId; //insert the trim in its appropriate place
 			}	
 			else{
-				if(slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
-					slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = ""; //insert blank string
+				if(slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
+					slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId][trimsById[trimId].order] = ""; //insert blank string
 			}
 		}
 	}
@@ -389,8 +395,8 @@ function clearTrims(assetId){ //removes all trims of an asset from slots
 
 	if(assetsById[assetId].trims) { //if asset has trims
 		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
-			if(slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
-				delete slotsByName[trimsById[trimId].trimPlacement].trimsEquipped[assetId]; //delete all trims for that asset from slot
+			if(slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
+				delete slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId]; //delete all trims for that asset from slot
 		}
 	}
 }
@@ -399,15 +405,15 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 
 	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
 
-	if(slotsByName[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
-		clearTrims(slotsByName[selectedSlot].assetEquipped); //clear currently equipped ass trims
+	if(slotsById[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
+		clearTrims(slotsById[selectedSlot].assetEquipped); //clear currently equipped ass trims
 	}
 
 	if(selectedAsset != 'None'){ //if the selected asset isn't None
 		
 		$('#hsl_sliders').show();
 		
-		slotsByName[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
+		slotsById[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
 		
 		assetsById[selectedAsset].equipped = 1; //update new asset equipped status
 
@@ -415,7 +421,7 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 	}
 	else{
 		
-		slotsByName[selectedSlot].assetEquipped = 'None'; //insert the id string of the new asset
+		slotsById[selectedSlot].assetEquipped = 'None'; //insert the id string of the new asset
 		
 		$('#hsl_sliders').hide();
 	}
@@ -434,7 +440,7 @@ function createAssetSelector(){ //creates the dropdown for the current asset, up
 	
 	selectedSlot = $('#slot_selector').val();
 	
-	selectedAsset = slotsByName[selectedSlot].assetEquipped; //update selected asset, according to slot object	
+	selectedAsset = slotsById[selectedSlot].assetEquipped; //update selected asset, according to slot object	
 	
 	var array = [];
 
@@ -444,11 +450,11 @@ function createAssetSelector(){ //creates the dropdown for the current asset, up
 		class: 'asset empty'
 	});
 
-	if(!$.isEmptyObject(slotsByName[selectedSlot].assets)) { //if there are assets in object, add them to array
+	if(!$.isEmptyObject(slotsById[selectedSlot].assets)) { //if there are assets in object, add them to array
 
-		for (var id in slotsByName[selectedSlot].assets){
+		for (var id in slotsById[selectedSlot].assets){
 			array.push({
-				name: slotsByName[selectedSlot].assets[id].name,
+				name: slotsById[selectedSlot].assets[id].name,
 				value: id,
 				class: 'asset'
 			});
@@ -461,7 +467,7 @@ function createAssetSelector(){ //creates the dropdown for the current asset, up
 
 	if(selectedAsset != 'None') {
 
-		updateOutput(assetsById[slotsByName[selectedSlot].assetEquipped]); //pass the asset object into updateOutput
+		updateOutput(assetsById[slotsById[selectedSlot].assetEquipped]); //pass the asset object into updateOutput
 
 		$('#hsl_sliders').show();
 	}	
@@ -488,31 +494,38 @@ function insertOptions(elementId, arr){ //insert options into element specified 
 	$(elementId).html(s);
 }
 
-function createimageArrayById(array, slotsByName){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
+function createimageArrayById(array, slotsById){//recursively iterates through childrenBelow, assetEquipped, trimsEquipped, childrenAbove
 
-	for(var i = 0, i_len = slotsByName.childrenBelow.length; i < i_len; i++){ //first iterate along imageArrayById's childrenBelow
-		createimageArrayById(array, slotsByName.childrenBelow[i]);
+	for(var i = 0, i_len = slotsById.childrenBelow.length; i < i_len; i++){ //first iterate along imageArrayById's childrenBelow
+		createimageArrayById(array, slotsById.childrenBelow[i]);
 	}
 
 	//add assets
-	if(slotsByName.assetEquipped != 'None') {
-		array.push(assetsById[slotsByName.assetEquipped]);
+	if(slotsById.assetEquipped != 'None') {
+		if(assetsById[slotsById.assetEquipped].hasShadow){ //if it has a shadow
+			array.push(shadowsById[assetsById[slotsById.assetEquipped].shadowId]); //add shadow of object to layer
+		}
+		array.push(assetsById[slotsById.assetEquipped]);
 	}
 	//add trim objects to array
-	if(slotsByName.trimsEquipped){ 
+	if(slotsById.trimsEquipped){ 
 
-		for(var key in slotsByName.trimsEquipped){ //iterate through each group of trims equipped
+		for(var key in slotsById.trimsEquipped){ //iterate through each group of trims equipped
 
-			for(var i = 0, i_len = slotsByName.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
-				if(trimsById[slotsByName.trimsEquipped[key][i]]) {
-					array.push(trimsById[slotsByName.trimsEquipped[key][i]]);
+			for(var i = 0, i_len = slotsById.trimsEquipped[key].length; i < i_len; i++){ //iterate through each trim in each group
+				if(trimsById[slotsById.trimsEquipped[key][i]]) {
+
+					if(trimsById[slotsById.trimsEquipped[key][i]].hasShadow){ //if it has a shadow, add shadow
+						array.push(shadowsById[trimsById[slotsById.trimsEquipped[key][i]].shadowId]);
+					}
+					array.push(trimsById[slotsById.trimsEquipped[key][i]]);
 				}
 			}
 		}
 	}
 
-	for (var i = 0, i_len = slotsByName.childrenAbove.length; i < i_len; i++) {
-		createimageArrayById(array, slotsByName.childrenAbove[i]);
+	for (var i = 0, i_len = slotsById.childrenAbove.length; i < i_len; i++) {
+		createimageArrayById(array, slotsById.childrenAbove[i]);
 	}
 
 //console.log(array);
@@ -670,6 +683,8 @@ function getImageData (arr, callback){
 
 function drawCharacter(a){
 
+	console.log(a);
+
 	var canvas = document.getElementById('canvas');
 
 	var ctx = canvas.getContext('2d');
@@ -682,11 +697,15 @@ function drawCharacter(a){
 
 	var	c_w = canvas.width;
 
+	var arrayType = "";
+
 	//for each layer in array
 	for (var n = 0, layers = a.length; n < layers; n++) {
 
-		var y = parseInt(a[n].y),  
-			x = parseInt(a[n].x),  
+		arrayType = a[n].type;
+
+		var y = a[n].y,  
+			x = a[n].x,  
 			w = a[n].w, 
 			h = a[n].h;
 
@@ -703,41 +722,55 @@ function drawCharacter(a){
 				//if asset pixel (j) has alpha > 0, then we need to add it to canvas
 				if ( a[n].img.data[p_a + 3] > 0){
 
-					//break up rgb to hsl, so we can manipulate color
-					var hsl = rgbToHsl( a[n].img.data[p_a + 0], a[n].img.data[p_a + 1], a[n].img.data[p_a + 2]);
-
-					//add in hue and sat values stored in array, adjust lum value using lumChange
-					hsl.h = a[n].hue / 360;
-					hsl.s = a[n].sat / 100;
-					hsl.l = lumChange(hsl.l, a[n].lum / 50);
-
-					//get new rgb value
-					var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
-				
 					//determine the pixel position for canvas p_c multiplied by 4 bytes per pixel (aka rgba)
 					var p_c = 4 * (x + c_w * (i + y) + j); 
 
-					//if asset pixel is opaque, we simply replace canvas pixel value with new values
-					if ( a[n].img.data[p_a + 3] == 255){
+					if(arrayType == 'shadow'){ //if the array object type is a shadow, then we add RGB equally to only filled pixels
 
-						data[p_c + 0] = newRgb.r; //red
-						data[p_c + 1] = newRgb.g; //green
-						data[p_c + 2] = newRgb.b; //blue
-						data[p_c + 3] = 255; // alpha
-					}
-					//else, we need to combine canvas pixel with asset pixel using linear blend: equation from http://stackoverflow.com/questions/7438263/alpha-compositing-algorithm-blend-modes
-					else {
-						var d_a = data[p_c + 3] / 255, 
-						a_a = a[n].img.data[p_a + 3] / 255,
-						final_a = a_a + d_a - a_a * d_a; 
+						if(data[p_c + 3] > 0) { // if the canvas has alpha greater than 0, then we need to add shadow rgb to it (to make it darker)
+//CONTINUE HERE
+							// if the shadow is all black, then we reduce (darken) rgba, by 1/3 of the alpha
+							data[p_c + 0] -= a[n].img.data[p_a + 3]/3; //red
+							data[p_c + 1] -= a[n].img.data[p_a + 3]/3; //green
+							data[p_c + 2] -= a[n].img.data[p_a + 3]/3; //blue
+						}
 
-						//linear blend
-						data[p_c + 0] = (newRgb.r * a_a + data[p_c + 0] * d_a * (1 - a_a)) / (final_a);
-						data[p_c + 1] = (newRgb.g * a_a + data[p_c + 1] * d_a * (1 - a_a)) / (final_a);
-						data[p_c + 2] = (newRgb.b * a_a + data[p_c + 2] * d_a * (1 - a_a)) / (final_a);
+					} 
+					else { //otherwise 
 
-						data[p_c + 3] = final_a * 255; // alpha
+						//break up rgb to hsl, so we can manipulate color
+						var hsl = rgbToHsl( a[n].img.data[p_a + 0], a[n].img.data[p_a + 1], a[n].img.data[p_a + 2]);
 
+						//add in hue and sat values stored in array, adjust lum value using lumChange
+						hsl.h = a[n].hue / 360;
+						hsl.s = a[n].sat / 100;
+						hsl.l = lumChange(hsl.l, a[n].lum / 50);
+
+						//get new rgb value
+						var newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+				
+						//if asset pixel is opaque, we simply replace canvas pixel value with new values
+						if ( a[n].img.data[p_a + 3] == 255){
+
+							data[p_c + 0] = newRgb.r; //red
+							data[p_c + 1] = newRgb.g; //green
+							data[p_c + 2] = newRgb.b; //blue
+							data[p_c + 3] = 255; // alpha
+						}
+						//else, we need to combine canvas pixel with asset pixel using linear blend: equation from http://stackoverflow.com/questions/7438263/alpha-compositing-algorithm-blend-modes
+						else {
+							var d_a = data[p_c + 3] / 255, 
+							a_a = a[n].img.data[p_a + 3] / 255,
+							final_a = a_a + d_a - a_a * d_a; 
+
+							//linear blend
+							data[p_c + 0] = (newRgb.r * a_a + data[p_c + 0] * d_a * (1 - a_a)) / (final_a);
+							data[p_c + 1] = (newRgb.g * a_a + data[p_c + 1] * d_a * (1 - a_a)) / (final_a);
+							data[p_c + 2] = (newRgb.b * a_a + data[p_c + 2] * d_a * (1 - a_a)) / (final_a);
+
+							data[p_c + 3] = final_a * 255; // alpha
+
+						}
 					}
 				}
 			}

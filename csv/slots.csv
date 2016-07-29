@@ -1,34 +1,34 @@
-name,order,parent
-body,0,root
-face,0,head
-eyes,1,head
-helmet,2,head
-hood,3,head
-fArmUnder,0,fArm
-fHandUnder,1,fArm
-fArmUpperArmor,2,fArm
-fArmBracer,3,fArm
-fShoulder,4,fArm
-fHandArmor,5,fArm
-bArm,-1,body
-pantsUnder,0,body
-skirtUnder,1,body
-chestUnder,2,body
-bFootUnder,3,body
-fFootUnder,4,body
-pantsArmor,5,body
-bFootArmor,6,body
-fFootArmor,7,body
-bShinArmor,8,body
-fShinArmor,9,body
-skirtArmor,10,body
-chestArmor,11,body
-bShoulder,12,body
-head,13,body
-fArm,14,body
-bHand,15,body
-bHandUnder,0,bHand
-bHandArmor,1,bHand
-bArmUnder,0,bArm
-bArmUpperArmor,1,bArm
-bArmBracer,2,bArm
+id,name,order,parent
+body,Body,0,root
+face,Face,0,head
+eyes,Eyes,1,head
+helmet,Helmet,2,head
+hood,Hood,3,head
+fArmUnder,Front Arm Under Armor,0,fArm
+fHandUnder,Front Hand Under Armor,1,fArm
+fArmUpperArmor,Front Upperarm Outer Armor,2,fArm
+fArmBracer,Front Arm Bracer,3,fArm
+fShoulder,Front Shoulder Pad,4,fArm
+fHandArmor,Front Hand Outer Armor,5,fArm
+bArm,Back Arm,-1,body
+pantsUnder,Pants,0,body
+skirtUnder,Skirt Under Armor,1,body
+chestUnder,Chest Under Armor,2,body
+bFootUnder,Back Foot Under Armor,3,body
+fFootUnder,Front Foot Under Armor,4,body
+pantsArmor,Leg Armor,5,body
+bFootArmor,Back Foot Outer Armor,6,body
+fFootArmor,Front Foot Outer Armor,7,body
+bShinArmor,Back Shin Guard,8,body
+fShinArmor,Front Shin Guard,9,body
+skirtArmor,Skirt Outer Armor,10,body
+chestArmor,Chest Outer Armor,11,body
+bShoulder,Back Shoulder Pad,12,body
+head,Head,13,body
+fArm,Front Arm,14,body
+bHand,Back Hand,15,body
+bHandUnder,Back Hand Under Armor,0,bHand
+bHandArmor,Back Hand Outer Armor,1,bHand
+bArmUnder,Back Arm Under Armor,0,bArm
+bArmUpperArmor,Back Upper Arm Armor,1,bArm
+bArmBracer,Back Arm Bracer,2,bArm
