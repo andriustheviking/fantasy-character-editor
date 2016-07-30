@@ -31,27 +31,36 @@
 					Brightness
 			        <input id="lumrange" name="lum" type="range" min="0" max="100" class="hsl_sliders">
 			        <input type="text" id="lumtext" name="lum" class="hsl_text"><br>
-
 				</div>
 			</div>
+			<br>
 			<div>
+				<span class='selector_label'>Slot:</span>
 				<select id="slot_selector">
 				</select>
+				<br>
+				<span class='selector_label'>Asset Equipped:</span>
 				<select id="asset_selector">
 				</select>
 				<br>
 				<div id="trim_div">
+					<span class='selector_label'>Trims Equipped:</span>
 					<select id="trim_selector">
 					</select>
 					<button id="trim_toggle"></button>
 					<br>
-					<button id="remove_trims">Remove All</button>
-					<button id="add_trims">Add All</button>
+					<!--<button id="remove_trims">Remove All</button>
+					<button id="add_trims">Add All</button>-->
 				</div>
 			</div>
 			<button type='button' id='applygroup' style="display:none">Apply</button>
 			<div id='group_div'>
+				<span class='selector_label'>Groups:</span>
 				<select id='group_selector'></select>
+				<button id='group_color_button'>Apply Color</button>
+				<button id='group_equip_button'>Equip All</button>
+				<br>
+				<span class='selector_label'>Group List:</span>
 				<select id='group_asset_selector'></select>
 			</div>
 		</div>

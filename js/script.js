@@ -19,10 +19,9 @@ allAssets = {};
 
 //colorTarget is target of HSL sliders
 colorTarget = {
-	targetObject: '',
-	id: ''
+	type: '',
+	obj: {}
 } 
-
 
 var slotTree = {
 	assetEquipped : "None",
@@ -79,7 +78,6 @@ $(document).ready( function(){
 			dataType: "text",
 			success: function(data) {
 				groupArray = parseGroupsCsv(data);
-				console.log(groupArray);
 			},
 			error: function(xhr, status, err){  //apparently not thrown on cross domain requests
 			    console.log(status + err + ": could not load group info");
@@ -210,59 +208,59 @@ $(document).ready( function(){
 		selectedSlot = $('#slot_selector').val(); //update selected slot
 
 		populateAssetSelector();
-		
-		colorTarget = { targetObject : assetsById,	id : selectedAsset};
+
+		colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};
+
+		updateColorTargetElement();
+
+		updateOutput(colorTarget.obj);
 
 		populateGroupSelector();
 
-		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
+		selectedGroup = $('#group_selector').val();
 
+		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 	});
+
 	//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
 	$('#slot_selector').change(function(){
 		populateAssetSelector();
-		colorTarget = { targetObject : assetsById,	id : selectedAsset};
+		colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};
 		updateColorTargetElement();
+		updateOutput(colorTarget.obj);
 	});
 
 	$('#asset_selector').change( function(){//when the asset selector is changed
 		updateAsset();
-		colorTarget = { targetObject : assetsById, id : selectedAsset};
-		updateColorTargetElement();
 	});
 
 	$('#trim_toggle').on('click', function(){
 		trimToggle();
-		colorTarget = { targetObject : trimsById, id : selectedTrim};
+		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
 		updateColorTargetElement();
 	});
 
 	$('#trim_selector').change(function(){
 
-		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
 		selectedTrim = $(this).val();
 
 		if(selectedTrim == "None" || !selectedTrim) { //if nothing selected
-
-			colorTarget = { targetObject : assetsById,	id : selectedAsset}; //target asset
-			updateColorTargetElement();
-			updateOutput(colorTarget.targetObject[colorTarget.id]);
-
+			colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};//target asset
 		} else{
-			
-			colorTarget = { targetObject : trimsById,	id : selectedTrim};
-			updateColorTargetElement();
-			updateOutput(colorTarget.targetObject[colorTarget.id]);
+			colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
 		}
+			updateColorTargetElement();
+			updateOutput(colorTarget.obj);		
 	});
 
 	$('#trim_selector').focus(function(){
-		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
 		updateColorTargetElement();
 	});
 
 	$('#asset_selector').focus(function(){
-		colorTarget = { targetObject : trimsById,	id : selectedTrim};
+		colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};
 		updateColorTargetElement();
 	});
 
@@ -276,17 +274,36 @@ $(document).ready( function(){
 
 	$('#group_selector').change(function(){
 		populateGroupAssetSelector();
-
 		selectedGroup = $('#group_selector').val();
-
-		colorTarget = { targetObject : groupArray,	id : selectedGroup};
+		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
+		updateOutput(colorTarget.obj);
 		updateColorTargetElement();
 	});
 
 	$('#group_selector').focus(function(){
 		selectedGroup = $('#group_selector').val();
-		colorTarget = { targetObject : groupArray,	id : selectedGroup};
+		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
+		updateOutput(colorTarget.obj);
 		updateColorTargetElement();
+	});
+
+	$('#group_color_button').click(function (){
+		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
+		updateColorTargetElement();
+		updateOutput(groupArray[selectedGroup]);
+		//insert the hue,sat,lum values of the group into each asset
+		for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
+			allAssets[groupArray[selectedGroup].list[i]].hue = groupArray[selectedGroup].hue; 
+			allAssets[groupArray[selectedGroup].list[i]].sat = groupArray[selectedGroup].sat;
+			allAssets[groupArray[selectedGroup].list[i]].lum = groupArray[selectedGroup].lum;
+		}
+		drawCharacter(imageArrayById);
+	});
+
+	$('#group_equip_button').click(function (){
+		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
+		updateColorTargetElement();
+		updateOutput(groupArray[selectedGroup]);
 	});
 
 	//clickable selectivity
@@ -295,9 +312,7 @@ $(document).ready( function(){
 	    canTop = canvas.offsetTop;
 
 	canvas.addEventListener('click', function(event){
-
 		clickSelect(canvas,canLeft,canTop);
-
 	});
 
 });
@@ -306,7 +321,10 @@ $(document).ready( function(){
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
 function updateColorTargetElement(){
-	$('#color_target').html(colorTarget.targetObject[colorTarget.id].name);
+	if(colorTarget.obj)
+		$('#color_target').html(colorTarget.obj.name);
+	else
+		$('#color_target').html("Slot is empty")
 }
 
 function populateGroupSelector() {
@@ -346,9 +364,9 @@ function changeColor(element){ //takes the 'type' of the input (Hue, Sat or Lum)
 
 		var inputName = $(element).attr('name');
 		
-		colorTarget.targetObject[colorTarget.id][inputName] = $("#" + inputName + $(element).attr('type')).val(); //update values in asset
+		colorTarget.obj[inputName] = $("#" + inputName + $(element).attr('type')).val(); //update values in asset
 
-		updateOutput(colorTarget.targetObject[colorTarget.id]);
+		updateOutput(colorTarget.obj);
 
 		drawCharacter(imageArrayById);
 }
@@ -399,7 +417,7 @@ function trimToggle(){
 
 	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and set colorTarget to trim
 		$('#trim_toggle').html('Remove Trim')
-		colorTarget = { targetObject : trimsById, id : selectedTrim};
+		colorTarget = { type : 'trim' , obj : trimsById[selectedTrim]};
 	} else { //otherwise insert blank
 		$('#trim_toggle').html('Add Trim')
 	}
@@ -485,11 +503,15 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 
 	if(selectedAsset != 'None'){ //if the selected asset isn't None
 		
-		$('#hsl_sliders').show();
-		
 		slotsById[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
 		
 		assetsById[selectedAsset].equipped = 1; //update new asset equipped status
+
+		colorTarget = { type : 'asset', obj : assetsById[selectedAsset] };
+
+		updateColorTargetElement();
+
+		updateOutput(colorTarget.obj);
 
 		updateTrims(selectedAsset);
 	}
@@ -541,7 +563,7 @@ function populateAssetSelector(){ //creates the dropdown for the current asset, 
 
 	if(selectedAsset != 'None') {
 
-		updateOutput(assetsById[slotsById[selectedSlot].assetEquipped]); //pass the asset object into updateOutput
+		updateOutput(colorTarget.obj); //pass the asset object into updateOutput
 
 		$('#hsl_sliders').show();
 	}	
@@ -690,13 +712,14 @@ function csvToObj(text, property) {
 
 
 function updateOutput(obj){
-
-		$('#huerange').val( obj.hue );
-		$('#huetext').val( obj.hue );
-		$('#satrange').val( obj.sat );
-		$('#sattext').val( obj.sat );
-		$('#lumrange').val( obj.lum );
-		$('#lumtext').val( obj.lum );
+	$('#hsl_sliders').show();
+	
+	$('#huerange').val( obj.hue );
+	$('#huetext').val( obj.hue );
+	$('#satrange').val( obj.sat );
+	$('#sattext').val( obj.sat );
+	$('#lumrange').val( obj.lum );
+	$('#lumtext').val( obj.lum );
 }
 
 

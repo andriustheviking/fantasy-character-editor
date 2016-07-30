@@ -13,3 +13,7 @@ body{
 .hsl_text{
 	width: 30px;
 }
+
+.selector_label {
+	font-weight: bold;
+}
