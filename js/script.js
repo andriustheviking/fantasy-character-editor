@@ -235,7 +235,19 @@ $(document).ready( function(){
 	});
 
 	$('#trim_toggle').on('click', function(){
-		trimToggle();
+		trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
+		updateTrims(selectedAsset);
+
+		if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and set colorTarget to trim
+			$('#trim_toggle').html('Remove Trim')
+			colorTarget = { type : 'trim' , obj : trimsById[selectedTrim]};
+		} else { //otherwise insert blank
+			$('#trim_toggle').html('Add Trim')
+		}
+		
+		imageArrayById = [];
+		imageArrayById = createimageArrayById(imageArrayById, slotTree);
+		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
 		updateColorTargetElement();
 	});
@@ -265,14 +277,14 @@ $(document).ready( function(){
 	});
 
 	$('.hsl_sliders').change(function(){
-		changeColor(this);
+		colorInputChange(this);
 	});
 
 	$('.hsl_text').change(function(){
-		changeColor(this);
+		colorInputChange(this);
 	});
 
-	$('#group_selector').change(function(){
+	$('#group_selector').change( function(){
 		populateGroupAssetSelector();
 		selectedGroup = $('#group_selector').val();
 		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
@@ -280,30 +292,71 @@ $(document).ready( function(){
 		updateColorTargetElement();
 	});
 
-	$('#group_selector').focus(function(){
+	$('#group_selector').focus( function(){
 		selectedGroup = $('#group_selector').val();
 		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
 		updateOutput(colorTarget.obj);
 		updateColorTargetElement();
 	});
 
-	$('#group_color_button').click(function (){
+	$('#group_color_button').click( function (){
 		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
 		updateColorTargetElement();
 		updateOutput(groupArray[selectedGroup]);
+		var id =""
 		//insert the hue,sat,lum values of the group into each asset
 		for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
-			allAssets[groupArray[selectedGroup].list[i]].hue = groupArray[selectedGroup].hue; 
-			allAssets[groupArray[selectedGroup].list[i]].sat = groupArray[selectedGroup].sat;
-			allAssets[groupArray[selectedGroup].list[i]].lum = groupArray[selectedGroup].lum;
+			id = groupArray[selectedGroup].list[i]
+			allAssets[id].hue = groupArray[selectedGroup].hue; 
+			allAssets[id].sat = groupArray[selectedGroup].sat;
+			allAssets[id].lum = groupArray[selectedGroup].lum;
+			
+			//change trim's colors if trims have inherit color
+			if(allAssets[id].trims){ 
+				for(var trimId in allAssets[id].trims) {
+					if(trimsById[trimId].inheritColor){
+						trimsById[trimId].hue = allAssets[trimsById[trimId].parentAsset].hue;
+						trimsById[trimId].lum = allAssets[trimsById[trimId].parentAsset].lum;
+						trimsById[trimId].sat = allAssets[trimsById[trimId].parentAsset].sat;
+					}
+				}
+			}
+
 		}
 		drawCharacter(imageArrayById);
 	});
 
-	$('#group_equip_button').click(function (){
+	$('#group_equip_button').click( function (){
 		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
 		updateColorTargetElement();
 		updateOutput(groupArray[selectedGroup]);
+
+		var id = "";
+
+		for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
+
+			id = groupArray[selectedGroup].list[i];
+
+			if(imageArrayById.indexOf(id) == -1) {//if the asset isn't already equipped
+				
+				if(allAssets[id].type == 'asset'){ //equipassets for assets
+					equipAsset(groupArray[selectedGroup].list[i]);
+				} else if (allAssets[id].type == 'trim') {
+					trimsById[id].equipped = 1;
+				}
+ 			}
+		}
+		imageArrayById = []; //clear out draw array
+		imageArrayById = createimageArrayById(imageArrayById, slotTree); //create a new draw array
+		getImageData(imageArrayById,drawCharacter);//getImageData
+	});
+
+	$('input[name="inherit_color"]').click( function(){
+		if(this.checked){
+			trimsById[selectedTrim].inheritColor = 1;
+		} else {
+			trimsById[selectedTrim].inheritColor = 0;
+		}
 	});
 
 	//clickable selectivity
@@ -314,7 +367,6 @@ $(document).ready( function(){
 	canvas.addEventListener('click', function(event){
 		clickSelect(canvas,canLeft,canTop);
 	});
-
 });
 
 
@@ -338,15 +390,14 @@ function populateGroupSelector() {
 		});
 	}
 	insertOptions('#group_selector',array);
-
 	populateGroupAssetSelector();
 }
 
 function populateGroupAssetSelector() {
 
 	var list = groupArray[$('#group_selector').val()].list;
-
 	var array = [];
+
 	for (var i = 0, i_len = list.length; i < i_len; i++){
 		array.push({
 			value: list[i],
@@ -354,20 +405,32 @@ function populateGroupAssetSelector() {
 			class:"groupoptionassets"
 		});
 	}
-
 	insertOptions('#group_asset_selector', array);
-
 }
 
 
-function changeColor(element){ //takes the 'type' of the input (Hue, Sat or Lum) and name of input to determine which value to change
+function colorInputChange(element){ //updates the new hue,sat,lum values of element changed, updates asset and redraws character
 
-		var inputName = $(element).attr('name');
+		var hslType = $(element).attr('name');
+
+		colorTarget.obj[hslType] = $("#" + hslType + $(element).attr('type')).val(); //update values in asset
+
+		if(colorTarget.obj.trims){ //if the asset has trims
+			for(var trim in colorTarget.obj.trims){
+				if(trimsById[trim].inheritColor){
+					console.log(trimsById[trim].inheritColor);
+					trimsById[trim][hslType] = allAssets[trimsById[trim].parentAsset][hslType];
+				}
+			}
+		}
+
+		if(colorTarget.obj.inheritColor){
+			colorTarget.obj.inheritColor = 0;
+			$('input[name="inherit_color"]').prop('checked',false);
+		}
 		
-		colorTarget.obj[inputName] = $("#" + inputName + $(element).attr('type')).val(); //update values in asset
-
 		updateOutput(colorTarget.obj);
-
+		
 		drawCharacter(imageArrayById);
 }
 
@@ -409,32 +472,9 @@ function clickSelect(canvas,canLeft,canTop){
 	}
 }
 
-function trimToggle(){
+function populateTrimSelector(){ //creates dropdown for trims, hids if no trim
 
-	trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
-
-	updateTrims(selectedAsset);
-
-	if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and set colorTarget to trim
-		$('#trim_toggle').html('Remove Trim')
-		colorTarget = { type : 'trim' , obj : trimsById[selectedTrim]};
-	} else { //otherwise insert blank
-		$('#trim_toggle').html('Add Trim')
-	}
-	
-	imageArrayById = [];
-
-	imageArrayById = createimageArrayById(imageArrayById, slotTree);
-	
-	getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
-}
-
-
-
-function populateTrimSelector(){ //creates dropdown for trims, hids if no trime
-
-	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')){
-		
+	if(selectedAsset != 'None' && assetsById[selectedAsset].hasOwnProperty('trims')) { //if the asset has trims
 		var listArray = [];
 
 		for(key in assetsById[selectedAsset].trims){
@@ -446,17 +486,23 @@ function populateTrimSelector(){ //creates dropdown for trims, hids if no trime
 		}
 
 		insertOptions("#trim_selector", listArray);
-
 		selectedTrim = $('#trim_selector').val();
 
-		if(selectedTrim != 'None'){
+		if(selectedTrim != 'None'){ //redundancy
+			//update add/remove button
 			if(trimsById[selectedTrim].equipped){
 				$('#trim_toggle').html('Remove Trim')
 			} else {
 				$('#trim_toggle').html('Add Trim')
 			}
-		}
 
+			if(trimsById[selectedTrim].inheritColor){
+				$('input[name="inherit_color"]').prop('checked',true);
+			} else {
+				$('input[name="inherit_color"]').prop('checked',false);
+			}
+
+		}
 		$('#trim_div').show();
 	}
 	else{
@@ -465,9 +511,7 @@ function populateTrimSelector(){ //creates dropdown for trims, hids if no trime
 }
 
 function updateTrims(assetId){ //inserts all equipped trims of an asset, and removes unequipped trims
-
 	if(assetsById[assetId].trims) { //if asset has trims
-
 		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
 			if(trimsById[trimId].equipped){
 				if(!slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId]){ //if there isn't an object for the asset's trims in the slot, then make one
@@ -484,7 +528,6 @@ function updateTrims(assetId){ //inserts all equipped trims of an asset, and rem
 }
 
 function clearTrims(assetId){ //removes all trims of an asset from slots
-
 	if(assetsById[assetId].trims) { //if asset has trims
 		for (var trimId in assetsById[assetId].trims){ //iterate for each trim by its ID
 			if(slotsById[trimsById[trimId].trimPlacement].trimsEquipped[assetId])
@@ -493,41 +536,44 @@ function clearTrims(assetId){ //removes all trims of an asset from slots
 	}
 }
 
+function equipAsset(id) { //swaps out assets in slots, removes and updates trims
+	var slot = assetsById[id].slot;
+
+	if (slotsById[slot].assetEquipped != 'None') { //if there is an item equipped
+		clearTrims(slotsById[slot].assetEquipped);//remove its trims
+		assetsById[slotsById[slot].assetEquipped].equipped = 0; //set its equipped status to 0
+	}
+	assetsById[id].equipped = 1;
+	slotsById[slot].assetEquipped = id; //insert id of new asset
+	updateTrims(id);
+}
+
 function updateAsset(){ //triggered when asset_selector is changed. swaps out asset to new one
+	var oldAsset = selectedAsset;
 
 	selectedAsset = $('#asset_selector').val();//get the new asset selected (value is asset's id)
 
-	if(slotsById[selectedSlot].assetEquipped != 'None') { //if there is currently an equipped asset
-		clearTrims(slotsById[selectedSlot].assetEquipped); //clear currently equipped ass trims
-	}
-
 	if(selectedAsset != 'None'){ //if the selected asset isn't None
-		
-		slotsById[selectedSlot].assetEquipped = selectedAsset; //insert the id string of the new asset
-		
-		assetsById[selectedAsset].equipped = 1; //update new asset equipped status
-
+		equipAsset(selectedAsset);
 		colorTarget = { type : 'asset', obj : assetsById[selectedAsset] };
-
 		updateColorTargetElement();
-
 		updateOutput(colorTarget.obj);
-
-		updateTrims(selectedAsset);
 	}
 	else{
-		
+
+		if(slotsById[selectedSlot].assetEquipped != 'None'){ //unequip current asset
+			assetsById[slotsById[selectedSlot].assetEquipped].equipped = 0;
+		}
+
 		slotsById[selectedSlot].assetEquipped = 'None'; //insert the id string of the new asset
-		
 		$('#hsl_sliders').hide();
+
+		clearTrims(oldAsset);
 	}
 	
 	imageArrayById = []; //clear out draw array
-	
 	imageArrayById = createimageArrayById(imageArrayById, slotTree); //create a new draw array
-
 	getImageData(imageArrayById,drawCharacter);//getImageData
-
 	populateTrimSelector();
 }
 
@@ -535,9 +581,7 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 function populateAssetSelector(){ //creates the dropdown for the current asset, updates selectedSlot and selectedAsset, launches populateTrimSelector
 	
 	selectedSlot = $('#slot_selector').val();
-	
 	selectedAsset = slotsById[selectedSlot].assetEquipped; //update selected asset, according to slot object	
-	
 	var array = [];
 
 	array.push({
@@ -547,7 +591,6 @@ function populateAssetSelector(){ //creates the dropdown for the current asset, 
 	});
 
 	if(!$.isEmptyObject(slotsById[selectedSlot].assets)) { //if there are assets in object, add them to array
-
 		for (var id in slotsById[selectedSlot].assets){
 			array.push({
 				name: slotsById[selectedSlot].assets[id].name,
@@ -558,17 +601,13 @@ function populateAssetSelector(){ //creates the dropdown for the current asset, 
 	}
 	
 	insertOptions('#asset_selector', array); //insert options into asset_selector selector element
-
 	$('#asset_selector').val(selectedAsset); //select the asset which is equipped
 
 	if(selectedAsset != 'None') {
-
 		updateOutput(colorTarget.obj); //pass the asset object into updateOutput
-
 		$('#hsl_sliders').show();
 	}	
 	else {
-
 		$('#hsl_sliders').hide();
 	}
 
@@ -623,41 +662,20 @@ function createimageArrayById(array, slotsById){//recursively iterates through c
 	for (var i = 0, i_len = slotsById.childrenAbove.length; i < i_len; i++) {
 		createimageArrayById(array, slotsById.childrenAbove[i]);
 	}
-
 	return array;
 }
 
-function applyGroupHsl (reference, assets, n){ //applies index n of reference array hsl to asset array
-
-	for(var x in assets){
-
-		if( reference[n].list.indexOf(assets[x].category) != -1){ //if the slot name exists in group list, then change values
-			
-			assets[x].hue = reference[n].hue;
-			assets[x].sat = reference[n].sat;
-			assets[x].lum = reference[n].lum;
-		}
-	}
-}
-
 function parseGroupsCsv (text){ //returns an array of objects {groupName,h,s,l,list}
-
-	//split up csv lines into array
-	var textLines = text.split(/\r\n|\n/);
-
+	var textLines = text.split(/\r\n|\n/);//split up csv lines into array
 	var arr = [];
 
 	for (var i = 0, l = textLines.length; i < l; i++) {
-
-		//split up textline array into array of csv values
-		var a = textLines[i].split(',');
-
+		var a = textLines[i].split(','); //split up textline array into array of csv values
+		
 		if(a[0]) { //a[0] prevents adding empty slots
-
 			var list = [];
-
-			//add list items to 
-			for(var j = 4, ll = a.length; j < ll; j++) { 
+			
+			for(var j = 4, ll = a.length; j < ll; j++) { //add list items to 
 				if(a[j])
 					list.push(a[j]);
 				else
@@ -678,21 +696,15 @@ function parseGroupsCsv (text){ //returns an array of objects {groupName,h,s,l,l
 
 //creates object from csv text. assigned by specified property
 function csvToObj(text, property) {
-
 	var textLines = text.split(/\r\n|\n/);
-	
 	var headers = textLines[0].split(',');
-
 	var output = {}
 
 	for (var i = 1, len = textLines.length; i < len; i++) {
-		
 		var lineArr = textLines[i].split(',');
-
 		var obj = {};
-		
-		for (var j = 0, jlen = headers.length; j < jlen; j++){		
 
+		for (var j = 0, jlen = headers.length; j < jlen; j++){		
 			//we need parse numbers for number strings
 			if( isNaN(lineArr[j]) ){
 				obj[headers[j]] = lineArr[j];
@@ -724,21 +736,16 @@ function updateOutput(obj){
 
 
 function getImageData (arr, callback){
-
 	var img = []; //array to store image elements
-
 	var canvas = document.getElementById('canvas');
 	canvas.width = 835;
 	canvas.height = 900;
-
 	var ctx = canvas.getContext('2d');
-
-	//need counter due to asynch loading
-	var counter = 0;
+	
+	var counter = 0;//need counter due to asynch loading
 
 	//iterate though array
 	for (var i = 0, l = arr.length; i < l; i++) {
-
 	//anonymous function to fix sync issue
 		(function(j,l){
 
@@ -963,5 +970,4 @@ function rgbToHsl(r, g, b){
     	s: s,
     	l: l,
     });
-
 }

@@ -17,3 +17,7 @@ body{
 .selector_label {
 	font-weight: bold;
 }
+
+.selector_box {
+	padding: 10px;
+}
