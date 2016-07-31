@@ -7,15 +7,15 @@
 var slotsById = {},
 assetsById = {}, 
 trimsById = {},
-imageArrayById = [],
-groupArray = [],
-selOptions = [],
+imageArrayById = [], //array of objects to be drawn in layered order from first to last
+selOptions = [],	//array of objects used to populate <select> elements
 selectedSlot = "",
 selectedAsset = "",
 selectedTrim = "",
-shadowsById = {},
-selectedGroup = "",
-allAssets = {};
+shadowsById = {},	
+groupArray = [],	//array to store group objects
+selectedGroup = "", //index of groupArray
+allAssets = {}; //stores both trims and assets
 
 //colorTarget is target of HSL sliders
 colorTarget = {
@@ -222,6 +222,15 @@ $(document).ready( function(){
 		getImageData(imageArrayById,drawCharacter);	//get imagedata and draw image
 	});
 
+	//clickable selectivity
+	var canvas = document.getElementById('canvas'),
+	    canLeft = canvas.offsetLeft,
+	    canTop = canvas.offsetTop;
+
+	canvas.addEventListener('click', function(event){
+		clickSelect(canvas,canLeft,canTop);
+	});
+
 	//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
 	$('#slot_selector').change(function(){
 		populateAssetSelector();
@@ -303,27 +312,9 @@ $(document).ready( function(){
 		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
 		updateColorTargetElement();
 		updateOutput(groupArray[selectedGroup]);
-		var id =""
-		//insert the hue,sat,lum values of the group into each asset
-		for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
-			id = groupArray[selectedGroup].list[i]
-			allAssets[id].hue = groupArray[selectedGroup].hue; 
-			allAssets[id].sat = groupArray[selectedGroup].sat;
-			allAssets[id].lum = groupArray[selectedGroup].lum;
-			
-			//change trim's colors if trims have inherit color
-			if(allAssets[id].trims){ 
-				for(var trimId in allAssets[id].trims) {
-					if(trimsById[trimId].inheritColor){
-						trimsById[trimId].hue = allAssets[trimsById[trimId].parentAsset].hue;
-						trimsById[trimId].lum = allAssets[trimsById[trimId].parentAsset].lum;
-						trimsById[trimId].sat = allAssets[trimsById[trimId].parentAsset].sat;
-					}
-				}
-			}
+		
+		applyGroupColor();
 
-		}
-		drawCharacter(imageArrayById);
 	});
 
 	$('#group_equip_button').click( function (){
@@ -359,27 +350,59 @@ $(document).ready( function(){
 		}
 	});
 
-	//clickable selectivity
-	var canvas = document.getElementById('canvas'),
-	    canLeft = canvas.offsetLeft,
-	    canTop = canvas.offsetTop;
-
-	canvas.addEventListener('click', function(event){
-		clickSelect(canvas,canLeft,canTop);
+	$('#add_to_group').click( function(){
+		//if the selected asset isn't 'None', and the doesn't exist in the list already
+		if(selectedAsset != 'None' && groupArray[selectedGroup].list.indexOf(selectedAsset) == -1){
+			groupArray[selectedGroup].list.push(selectedAsset);
+			populateGroupSelector();
+		}
 	});
+
+	$('#remove_from_group').click(function (){
+		var groupAssetId = $('#group_asset_selector').val();
+		if(groupAssetId){
+			groupArray[selectedGroup].list.splice(groupArray[selectedGroup].list.indexOf(groupAssetId),1); //removes the asset from its own index
+			populateGroupSelector();
+		}
+	});
+
 });
 
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
 
-function updateColorTargetElement(){
+function applyGroupColor () { //applies group color to assets in group list and redraws assets
+	var id =""
+	//insert the hue,sat,lum values of the group into each asset
+	for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
+		id = groupArray[selectedGroup].list[i]
+		allAssets[id].hue = groupArray[selectedGroup].hue; 
+		allAssets[id].sat = groupArray[selectedGroup].sat;
+		allAssets[id].lum = groupArray[selectedGroup].lum;
+		
+		//change trim's colors if trims have inherit color
+		if(allAssets[id].trims){ 
+			for(var trimId in allAssets[id].trims) {
+				if(trimsById[trimId].inheritColor){
+					trimsById[trimId].hue = allAssets[trimsById[trimId].parentAsset].hue;
+					trimsById[trimId].lum = allAssets[trimsById[trimId].parentAsset].lum;
+					trimsById[trimId].sat = allAssets[trimsById[trimId].parentAsset].sat;
+				}
+			}
+		}
+	}
+	drawCharacter(imageArrayById);
+}
+
+
+function updateColorTargetElement(){ //shows what asset, group or material is currently targeted
 	if(colorTarget.obj)
 		$('#color_target').html(colorTarget.obj.name);
 	else
 		$('#color_target').html("Slot is empty")
 }
 
-function populateGroupSelector() {
+function populateGroupSelector() { 
 
 	var array = [];
 	for (var i = 0, i_len = groupArray.length; i < i_len; i++){
@@ -411,10 +434,13 @@ function populateGroupAssetSelector() {
 
 function colorInputChange(element){ //updates the new hue,sat,lum values of element changed, updates asset and redraws character
 
-		var hslType = $(element).attr('name');
+	var hslType = $(element).attr('name');
 
-		colorTarget.obj[hslType] = $("#" + hslType + $(element).attr('type')).val(); //update values in asset
-
+	colorTarget.obj[hslType] = $("#" + hslType + $(element).attr('type')).val(); //update values in asset
+	
+	if(colorTarget.type == 'group'){
+		applyGroupColor();
+	} else {
 		if(colorTarget.obj.trims){ //if the asset has trims
 			for(var trim in colorTarget.obj.trims){
 				if(trimsById[trim].inheritColor){
@@ -423,16 +449,16 @@ function colorInputChange(element){ //updates the new hue,sat,lum values of elem
 				}
 			}
 		}
-
+		//show update inheritcolor checkbox, if available
 		if(colorTarget.obj.inheritColor){
 			colorTarget.obj.inheritColor = 0;
 			$('input[name="inherit_color"]').prop('checked',false);
 		}
-		
-		updateOutput(colorTarget.obj);
-		
-		drawCharacter(imageArrayById);
+	drawCharacter(imageArrayById);
+	}
+	updateOutput(colorTarget.obj);
 }
+
 
 function clickSelect(canvas,canLeft,canTop){
 
