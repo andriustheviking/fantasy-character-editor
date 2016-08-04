@@ -3,3 +3,4 @@ sh0001,shadow,Mail Shirt Shadow,hm00009,276,436,137,19,assets/armor_pose_01,chai
 sh0002,shadow,Mail Skirt Shadow,tm00004,255,532,183,32,assets/armor_pose_01,chainmail_skirt_01_shadow.png
 sh0003,shadow,Front Arm Shadow,hm00002,347,405,123,112,assets/body_pose_01,body_frontarm_01_shadow.png
 sh0004,shadow,head shadow,hm00005,312,195,88,65,assets/body_pose_01,body_head_01_shadow.png
+sh0005,shadow,platehelmetshadow,tm00005,307,164,63,52,assets/platearmor_01,plate_helmet_01_trim_shdw.png
