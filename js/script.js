@@ -66,7 +66,7 @@ $(document).ready( function(){
 
 		$.ajax({
 			type: "GET",
-			url: "./csv/asset info.csv",
+			url: "./csv/assets.csv",
 			dataType: "text",
 			success: function (data) {
 				assetsById = csvToObj(data, "id");
