@@ -1,18 +1,19 @@
-id,type,name,material,slot,pairLinked,pairId,position,hue,sat,lum,removable,equipped,x,y,w,h,shadowId,location,filename
-hm00020,asset,Steel Plate Helmet,steelplate,helmet,0,0,a,220,15,50,1,1,302,114,85,118,0,assets/platearmor_01,plate_helmet_01.png
-hm00019,asset,Chest Cloth,cloth,chestUnder,0,0,a,50,20,85,1,0,276,219,161,231,0,assets/armor_pose_01,cloth_chest_01.png
-hm00018,asset,Back Arm Cloth,cloth,bArmUnder,1,hm00017,a,50,20,85,1,0,200,235,120,151,0,assets/armor_pose_01,cloth_backarm_01.png
-hm00017,asset,Front Arm Cloth,cloth,fArmUnder,1,hm00018,a,50,20,85,1,0,404,237,84,198,0,assets/armor_pose_01,cloth_frontarm_01.png
-hm00016,asset,Cloth Pants,cloth,pantsUnder,0,0,a,50,20,85,1,1,259,411,229,373,0,assets/armor_pose_01,cloth_pants_01.png
-hm00013,asset,Front Shoe Leather,leather,fFootUnder,1,hm00012,a,28,53,40,1,1,401,618,102,218,0,assets/armor_pose_01,leather_frontfoot_01.png
-hm00012,asset,Back Shoe Leather,leather,bFootUnder,1,hm00013,a,28,53,40,1,1,207,635,146,197,0,assets/armor_pose_01,leather_backfoot_01.png
-hm00011,asset,Back Arm Mail,chainmail,bArmUnder,1,hm00008,a,220,15,85,1,1,198,235,122,151,0,assets/armor_pose_01,chainmail_backarm_01.png
-hm00009,asset,Chest Mail,chainmail,chestUnder,0,0,a,220,15,85,1,1,276,219,161,231,sh0001,assets/armor_pose_01,chainmail_chest_01.png
-hm00008,asset,Front Arm Mail,chainmail,fArmUnder,1,hm00011,a,220,15,85,1,1,404,236,82,199,0,assets/armor_pose_01,chainmail_frontarm_01.png
-hm00007,asset,Back Arm,skin,bArm,0,0,a,34,42,60,0,1,188,233,135,155,0,assets/body_pose_01,body_back_arm_01.png
-hm00006,asset,Back Hand,skin,bHand,0,0,a,34,42,60,0,1,153,331,61,67,0,assets/body_pose_01,body_back_hand_01.png
-hm00005,asset,Head,skin,head,0,0,a,34,42,60,0,1,306,121,80,105,sh0004,assets/body_pose_01,body_head_01.png
-hm00004,asset,Loin Cloth,cloth,pantsUnder,0,0,a,200,50,50,0,0,276,415,135,102,0,assets/body_pose_01,loincloth.png
-hm00003,asset,Face 1,skin,face,0,0,a,34,42,60,0,1,307,144,66,90,0,assets/body_pose_01,body_face01.png
-hm00002,asset,Front Arm,skin,fArm,0,0,a,34,42,60,0,1,363,242,123,250,sh0003,assets/body_pose_01,body_frontarm_01.png
+id,type,name,material,slot,linked,linkId,position,hue,sat,lum,removable,equipped,x,y,w,h,shadowId,location,filename
 hm00001,asset,Body,skin,body,0,0,a,34,42,60,0,1,211,178,290,656,0,assets/body_pose_01,body_body_01.png
+hm00002,asset,Front Arm,skin,fArm,0,0,a,34,42,60,0,1,363,242,123,250,sh0003,assets/body_pose_01,body_frontarm_01.png
+hm00003,asset,Face 1,skin,face,0,0,a,34,42,60,0,1,307,144,66,90,0,assets/body_pose_01,body_face01.png
+hm00004,asset,Loin Cloth,cloth,pantsUnder,0,0,a,50,20,85,0,0,276,415,135,102,0,assets/body_pose_01,loincloth.png
+hm00005,asset,Head,skin,head,0,0,a,34,42,60,0,1,306,121,80,105,sh0004,assets/body_pose_01,body_head_01.png
+hm00006,asset,Back Hand,skin,bHand,0,0,a,34,42,60,0,1,153,331,61,67,0,assets/body_pose_01,body_back_hand_01.png
+hm00007,asset,Back Arm,skin,bArm,0,0,a,34,42,60,0,1,188,233,135,155,0,assets/body_pose_01,body_back_arm_01.png
+hm00008,asset,Mail Sleeve Front,chainmail,fArmUnder,1,hm00009,a,220,15,85,1,1,404,236,82,199,0,assets/armor_pose_01,chainmail_frontarm_01.png
+hm00009,asset,Mail Shirt,chainmail,chestUnder,1,hm00011,a,220,15,85,1,1,276,219,161,231,sh0001,assets/armor_pose_01,chainmail_chest_01.png
+hm00011,asset,Mail Sleeve Back,chainmail,bArmUnder,1,hm00008,a,220,15,85,1,1,198,235,122,151,0,assets/armor_pose_01,chainmail_backarm_01.png
+hm00012,asset,Back Shoe Leather,leather,bFootUnder,1,hm00013,a,28,53,40,1,1,207,635,146,197,0,assets/armor_pose_01,leather_backfoot_01.png
+hm00013,asset,Front Shoe Leather,leather,fFootUnder,1,hm00012,a,28,53,40,1,1,401,618,102,218,0,assets/armor_pose_01,leather_frontfoot_01.png
+hm00016,asset,Cloth Pants,cloth,pantsUnder,0,0,a,50,20,85,1,1,259,411,229,373,0,assets/armor_pose_01,cloth_pants_01.png
+hm00017,asset,Cloth Sleeve Front,cloth,fArmUnder,1,hm00018,a,50,20,85,1,0,404,237,84,198,0,assets/armor_pose_01,cloth_frontarm_01.png
+hm00018,asset,Cloth Sleeve Back,cloth,bArmUnder,1,hm00019,a,50,20,85,1,0,200,235,120,151,0,assets/armor_pose_01,cloth_backarm_01.png
+hm00019,asset,Cloth Shirt,cloth,chestUnder,1,hm00017,a,50,20,85,1,0,276,219,161,231,0,assets/armor_pose_01,cloth_chest_01.png
+hm00020,asset,Steel Plate Helmet,steelplate,helmet,0,0,a,220,15,50,1,1,302,114,85,118,0,assets/platearmor_01,plate_helmet_01.png
+hm00021,asset,Steel Shoulderpad Front,steelplate,fShoulder,0,0,a,220,15,50,1,1,389,220,78,73,,assets/platearmor_01,

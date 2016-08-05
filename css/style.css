@@ -19,6 +19,9 @@ body{
 }
 
 .selector_box {
-	padding: 10px;
+	margin: 10px;
+    background-color: #b6dbfd;
+    padding: 5px;
+    border-radius: 5px;
 }
 

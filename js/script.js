@@ -20,11 +20,8 @@ allAssets = {},//stores both trims and assets
 copyColorState = 0; //tracks whether user wants to copy color
 
 
-//colorTarget is target of HSL sliders
-colorTarget = {
-	type: '',
-	obj: {}
-} 
+//colorTarget is object currently selected
+colorTarget = {} 
 
 var slotTree = {
 	assetEquipped : "None",
@@ -36,6 +33,22 @@ var slotTree = {
 
 
 $(document).ready( function(){
+
+	var $slotSelector = $('#slot_selector'),
+		$assetSelector = $('#asset_selector'),
+		$trimToggle = $('#trim_toggle'),
+		$trimSelector = $('#trim_selector'),
+		$hslSlidersInput = $('.hsl_sliders'),
+		$hslTextInput = $('.hsl_text'),
+		$groupSelector = $('#group_selector'),
+		$groupColorButton = $('#group_color_button'),
+		$groupEquipButton = $('#group_equip_button'),
+		$groupUnequipButton = $('#group_unequip_button'),
+		$inheritColorCheckbox = $('#inherit_color_checkbox'),
+		$linkSetCheckbox = $('#link_set_checkbox'),
+		$addToGroupBtn = $('#add_to_group'),
+		$removeFromGroupBtn = $('#remove_from_group'),
+		$newGroupBtn = $('#new_group_btn');
 
 	$.when(
 
@@ -99,7 +112,11 @@ $(document).ready( function(){
 			}
 		})
 	).done( function(){
-
+		
+		var slot = "",
+			parentAssetId = "",
+			selOptions = []; //clear out select options
+		
 		//fill out rest of slot object
 		for( var key in slotsById) { //add empty properties to each slotsById[key]
 			slotsById[key].assetEquipped = "None"; //stores id of asset for this slot, if equipped
@@ -131,8 +148,7 @@ $(document).ready( function(){
 		}
 
 	// link assets to slots
-		var slot;
-
+		
 		for (var id in assetsById){
 
 			if(!assetsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
@@ -151,8 +167,7 @@ $(document).ready( function(){
 		}
 
 	// get trim info and store it in assets
-		var parentAssetId;
-
+		
 		for (var id in trimsById){
 
 			if(!trimsById.hasOwnProperty(id)) continue;//don't include primitive prototypes
@@ -180,8 +195,6 @@ $(document).ready( function(){
 		}	
 
 	//now that's done, create array for layers to draw
-
-		selOptions = []; //clear out select options
 
 		//build selOptions array
 		for(var key in slotsById){	
@@ -214,11 +227,11 @@ $(document).ready( function(){
 
 		populateAssetSelector();
 
-		colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};
+		colorTarget = assetsById[selectedAsset];
 
 		updateColorTargetElement();
 
-		updateOutput(colorTarget.obj);
+		updateOutput(colorTarget);
 
 		populateGroupSelector();
 
@@ -227,7 +240,7 @@ $(document).ready( function(){
 
 
 	//handles clicking
-	$(document).click(function(e){
+	$(this).click(function(e){
 
 		console.log(e.target.id);
 
@@ -265,8 +278,8 @@ $(document).ready( function(){
 						imageArrayById[i].img.data[4 *(x - imageArrayById[i].x + imageArrayById[i].w * (y - imageArrayById[i].y)) + 3] )
 					{ 
 						if(copyColorState){
-							changeColor(colorTarget.obj, imageArrayById[i].hue, imageArrayById[i].sat, imageArrayById[i].lum);
-							updateOutput(colorTarget.obj);
+							changeColor(colorTarget, imageArrayById[i].hue, imageArrayById[i].sat, imageArrayById[i].lum);
+							updateOutput(colorTarget);
 							getImageData(drawCharacter);
 
 						} else {
@@ -295,7 +308,8 @@ $(document).ready( function(){
 	});
 
 	//when slot selector is changed, store the new slot value in selectedSlot and update the Asset Selector
-	$('#slot_selector').change(function(){
+
+	$slotSelector.change(function(){
 		
 		populateAssetSelector();
 
@@ -303,90 +317,99 @@ $(document).ready( function(){
 			$('#hsl_sliders').hide();
 		} else {
 			$('#hsl_sliders').show();
-			colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};	
+			colorTarget = assetsById[selectedAsset];	
 			updateColorTargetElement();
-			updateOutput(colorTarget.obj);			
+			updateOutput(colorTarget);			
 		}
-		
 	});
 
-	$('#asset_selector').change( function(){//when the asset selector is changed
+
+	$assetSelector.change( function(){//when the asset selector is changed
 		updateAsset();
 	});
 
-	$('#trim_toggle').on('click', function(){
+
+	$trimToggle.on('click', function(){
 		trimsById[selectedTrim].equipped = !trimsById[selectedTrim].equipped;
 		updateTrims(selectedAsset);
 
 		if(trimsById[selectedTrim].equipped){ //if the trim is now equipped, then change button and set colorTarget to trim
 			$('#trim_toggle').html('Remove Trim')
-			colorTarget = { type : 'trim' , obj : trimsById[selectedTrim]};
+			colorTarget = trimsById[selectedTrim];
 		} else { //otherwise insert blank
 			$('#trim_toggle').html('Add Trim')
 		}
 		
 		getImageData(drawCharacter);	//get imagedata and draw image
-		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
+		colorTarget = trimsById[selectedTrim];
 		updateColorTargetElement();
 	});
 
-	$('#trim_selector').change(function(){
+	
+	$trimSelector.change( function(){
 
-		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
+		colorTarget = trimsById[selectedTrim];
 		selectedTrim = $(this).val();
 
 		if(selectedTrim == "None" || !selectedTrim) { //if nothing selected
-			colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};//target asset
+			colorTarget = assetsById[selectedAsset];//target asset
 		} else{
-			colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
+			colorTarget = trimsById[selectedTrim];
 		}
 			updateColorTargetElement();
-			updateOutput(colorTarget.obj);		
+			updateOutput(colorTarget);		
 	});
 
-	$('#trim_selector').focus(function(){
-		colorTarget = { type : 'trim',	obj : allAssets[selectedTrim]};
+
+	$trimSelector.focus( function(){
+		colorTarget = trimsById[selectedTrim];
 		updateColorTargetElement();
 	});
 
-	$('#asset_selector').focus(function(){
-		colorTarget = { type : 'asset',	obj : allAssets[selectedAsset]};
+	$assetSelector.focus( function(){
+		colorTarget = assetsById[selectedAsset];
 		updateColorTargetElement();
 	});
 
-	$('.hsl_sliders').change(function(){
+
+	$hslSlidersInput.change(function(){
 		colorInputChange(this);
 	});
 
-	$('.hsl_text').change(function(){
+	
+	$hslTextInput.change(function(){
 		colorInputChange(this);
 	});
 
-	$('#group_selector').change( function(){
+
+	$groupSelector.change( function(){
 		selectedGroup = $('#group_selector').val();
-		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
-		updateOutput(colorTarget.obj);
+		colorTarget = groupArray[selectedGroup];
+		updateOutput(colorTarget);
 		updateColorTargetElement();
 		populateGroupAssetSelector();
 	});
 
-	$('#group_selector').focus( function(){
+
+	$groupSelector.focus( function(){
 		selectedGroup = $('#group_selector').val();
-		colorTarget = { type : 'group', obj : groupArray[selectedGroup]};
-		updateOutput(colorTarget.obj);
+		colorTarget = groupArray[selectedGroup];
+		updateOutput(colorTarget);
 		updateColorTargetElement();
 	});
 
-	$('#group_color_button').click( function (){
-		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
+	
+	$groupColorButton.click( function (){
+		colorTarget = groupArray[selectedGroup];
 		updateColorTargetElement();
 		updateOutput(groupArray[selectedGroup]);
 		changeColor(groupArray[selectedGroup], groupArray[selectedGroup].hue, groupArray[selectedGroup].sat, groupArray[selectedGroup].lum);
 		drawCharacter(imageArrayById);
 	});
 
-	$('#group_equip_button').click( function (){
-		colorTarget = {type : 'group', obj : groupArray[selectedGroup]};
+	
+	$groupEquipButton.click( function (){
+		colorTarget = groupArray[selectedGroup];
 		updateColorTargetElement();
 		updateOutput(groupArray[selectedGroup]);
 
@@ -405,11 +428,11 @@ $(document).ready( function(){
 				}
  			}
 		}
-
 		getImageData(drawCharacter);//getImageData
 	});
 
-	$('#group_unequip_button').click( function (){
+	
+	$groupUnequipButton.click( function (){
 		var id = "";
 		for(var i = 0, l = groupArray[selectedGroup].list.length; i < l; i++){
 
@@ -424,19 +447,21 @@ $(document).ready( function(){
 				}
 			}
 		}
-
 		getImageData(drawCharacter);//getImageData
 	});
 
-	$('input[name="inherit_color"]').click( function(){
-		if(this.checked){
-			trimsById[selectedTrim].inheritColor = 1;
-		} else {
-			trimsById[selectedTrim].inheritColor = 0;
-		}
+	
+	$inheritColorCheckbox.change( function(){
+		trimsById[selectedTrim].inheritColor = +this.checked; //store the int of checked value in inhertiColor property
 	});
 
-	$('#add_to_group').click( function(){
+	
+	$linkSetCheckbox.change( function(){
+		changeLinkedStatus(assetsById[selectedAsset], +this.checked);
+	});
+
+	
+	$addToGroupBtn.click( function(){
 		//if the selected asset isn't 'None', and the doesn't exist in the list already
 		if(selectedAsset != 'None' && groupArray[selectedGroup].list.indexOf(selectedAsset) == -1){
 			groupArray[selectedGroup].list.push(selectedAsset);
@@ -444,7 +469,8 @@ $(document).ready( function(){
 		}
 	});
 
-	$('#remove_from_group').click(function (){
+	
+	$removeFromGroupBtn.click(function (){
 		var groupAssetId = $('#group_asset_selector').val();
 		if(groupAssetId){
 			groupArray[selectedGroup].list.splice(groupArray[selectedGroup].list.indexOf(groupAssetId),1); //removes the asset from its own index
@@ -452,7 +478,8 @@ $(document).ready( function(){
 		}
 	});
 
-	$('#new_group_btn').click(function (){
+	
+	$newGroupBtn.click(function (){
 
 		if($('#new_group_name').css('display') == 'none'){
  			$('#new_group_name').show();
@@ -465,6 +492,14 @@ $(document).ready( function(){
 
 
 /**--------------------------------------------------------------------------FUNCTIONS---------------------------------------------------------------------**/
+
+
+function changeLinkedStatus(obj, checkedStatus) {
+	obj.linked = checkedStatus;
+	if(assetsById[obj.linkId].linked != checkedStatus)
+		changeLinkedStatus(assetsById[obj.linkId], checkedStatus);
+}
+
 function createNewGroup(){ //takes user input from new_group_name and creates a new group and selects it
 
 	var newGroup = "";
@@ -479,7 +514,6 @@ function createNewGroup(){ //takes user input from new_group_name and creates a 
 				return;
 			}
 		}
-
 		//add a new object to group array
 		groupArray.push({
 			name: newGroup,
@@ -491,7 +525,7 @@ function createNewGroup(){ //takes user input from new_group_name and creates a 
 
 		selectedGroup = groupArray.length - 1; //update selected group
 		populateGroupSelector();
-		colorTarget = {type: 'group', obj: groupArray[selectedGroup]};
+		colorTarget = groupArray[selectedGroup];
 		updateColorTargetElement();
 		$('#group_selector').val(selectedGroup);
 		$('#new_group_name').val("");
@@ -503,8 +537,8 @@ function createNewGroup(){ //takes user input from new_group_name and creates a 
 
 
 function updateColorTargetElement(){ //shows what asset, group or material is currently targeted
-	if(colorTarget.obj)
-		$('#color_target').html(colorTarget.obj.name);
+	if(colorTarget)
+		$('#color_target').html(colorTarget.name);
 	else
 		$('#color_target').html("Slot is empty")
 }
@@ -555,17 +589,17 @@ function colorInputChange(element){ //updates the new hue,sat,lum values of elem
 
 	console.log("h: "+h+ ' s: '+s+ ' l: '+l);
 
-	changeColor(colorTarget.obj, h, s, l);
+	changeColor(colorTarget, h, s, l);
 	
-	//change target inerhitColor to off, if applicable
-	if(colorTarget.obj.inheritColor){
-		colorTarget.obj.inheritColor = 0;
+	//change target inheritColor to off, if applicable
+	if(colorTarget.inheritColor){
+		colorTarget.inheritColor = 0;
 		$('input[name="inherit_color"]').prop('checked',false);
 	}
 
 	drawCharacter(imageArrayById);
 	
-	updateOutput(colorTarget.obj);
+	updateOutput(colorTarget);
 }
 
 
@@ -577,11 +611,11 @@ function changeColor(obj, hue, sat, lum){ //recursively changes color of object 
 
 	if(obj.type == 'asset'){
 
-		//if its pair is linked, 
-		if( obj.pairLinked){
-			//and if its pair is a different color, change color of pair
-			if( allAssets[obj.pairId].hue != hue || allAssets[obj.pairId].lum != lum || allAssets[obj.pairId].sat != sat) {
-				changeColor(allAssets[obj.pairId], hue, sat, lum);
+		//if object is linked
+		if( obj.linked){
+			//and if its next link is a different color, change color of link
+			if( allAssets[obj.linkId].hue != hue || allAssets[obj.linkId].lum != lum || allAssets[obj.linkId].sat != sat) {
+				changeColor(allAssets[obj.linkId], hue, sat, lum);
 			}
 		}
 
@@ -624,13 +658,9 @@ function populateTrimSelector(){ //creates dropdown for trims, hids if no trim
 				$('#trim_toggle').html('Add Trim')
 			}
 
-			if(trimsById[selectedTrim].inheritColor){
-				$('input[name="inherit_color"]').prop('checked',true);
-			} else {
-				$('input[name="inherit_color"]').prop('checked',false);
-			}
-
+			$('input[name="inherit_color"]').prop('checked',trimsById[selectedTrim].inheritColor);
 		}
+
 		$('#trim_div').show();
 	}
 	else{
@@ -691,9 +721,9 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 
 	if(selectedAsset != 'None'){ //if the selected asset isn't None
 		equipAsset(selectedAsset);
-		colorTarget = { type : 'asset', obj : assetsById[selectedAsset] };
+		colorTarget = assetsById[selectedAsset];
 		updateColorTargetElement();
-		updateOutput(colorTarget.obj);
+		updateOutput(colorTarget);
 	}
 	else{
 		if(slotsById[selectedSlot].assetEquipped != 'None'){ //unequip current asset
@@ -711,7 +741,9 @@ function updateAsset(){ //triggered when asset_selector is changed. swaps out as
 function populateAssetSelector(){ //creates the dropdown for the current asset, updates selectedSlot and selectedAsset, launches populateTrimSelector
 	
 	selectedSlot = $('#slot_selector').val();
+	
 	selectedAsset = slotsById[selectedSlot].assetEquipped; //update selected asset, according to slot object	
+	
 	var array = [];
 
 	array.push({
@@ -734,8 +766,17 @@ function populateAssetSelector(){ //creates the dropdown for the current asset, 
 	$('#asset_selector').val(selectedAsset); //select the asset which is equipped
 
 	if(selectedAsset != 'None') {
-		updateOutput(colorTarget.obj); //pass the asset object into updateOutput
+		updateOutput(colorTarget); //pass the asset object into updateOutput
 		$('#hsl_sliders').show();
+
+		//if it has an asset to link to
+		if(assetsById[selectedAsset].linkId){
+			$('#link_option_div').show();
+				$('#link_set_checkbox').prop('checked',assetsById[selectedAsset].linked); //set value of checkbox to linked property of asset
+		} else {
+			$('#link_option_div').hide();
+		}
+
 	}	
 	else {
 		$('#hsl_sliders').hide();
