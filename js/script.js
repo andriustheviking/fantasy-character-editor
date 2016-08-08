@@ -236,6 +236,8 @@ $(document).ready( function(){
 		populateGroupSelector();
 
 		getImageData(drawCharacter);	//get imagedata and draw image
+console.log(slotTree);
+console.log(imageArrayById);	
 	});
 
 
@@ -824,7 +826,7 @@ function createImageArrayById(array, slot){//recursively iterates through childr
 		addTrimToImageArray(array,slot,"tOn");
 	//if it has "tAbove" trims, add to image array
 	if(slot.tAbove)
-		addTrimToImageArray(array,slot,"tAbove")
+		addTrimToImageArray(array,slot,"tAbove");
 
 	for (var i = 0, i_len = slot.childrenAbove.length; i < i_len; i++) {
 		createImageArrayById(array, slot.childrenAbove[i]);
@@ -935,7 +937,7 @@ function getImageData (callback){
 	//anonymous function to fix sync issue
 		(function(j,l){
 
-			if(!imageArrayById[j].img) { //if the array doesn't have image data, then get image data, else add to counter
+			if(imageArrayById[j] && !imageArrayById[j].img) { //if the array doesn't have image data, then get image data, else add to counter
 
 				//create image element
 				img[j] = new Image();
@@ -961,6 +963,11 @@ function getImageData (callback){
 				};
 			}
 			else{
+
+				if(!imageArrayById[j])
+				{
+					console.log("Error: imageArrayById["+j+"] returned false");
+				}
 
 				counter++;
 			

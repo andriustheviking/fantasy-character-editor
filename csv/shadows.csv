@@ -1,6 +1,14 @@
-id,type,name,parentAsset,x,y,w,h,location,filename
-sh0001,shadow,Mail Shirt Shadow,hm00009,276,436,137,19,assets/armor_pose_01,chainmail_chest_01_shadow.png
-sh0002,shadow,Mail Skirt Shadow,tm00004,255,532,183,32,assets/armor_pose_01,chainmail_skirt_01_shadow.png
-sh0003,shadow,Front Arm Shadow,hm00002,347,405,123,112,assets/body_pose_01,body_frontarm_01_shadow.png
-sh0004,shadow,head shadow,hm00005,312,195,88,65,assets/body_pose_01,body_head_01_shadow.png
-sh0005,shadow,platehelmetshadow,tm00005,307,164,63,52,assets/platearmor_01,plate_helmet_01_trim_shdw.png
+id,type,x,y,w,h,location,filename
+sh0001,shadow,276,436,137,19,assets/armor_pose_01,chainmail_chest_01_shadow.png
+sh0002,shadow,255,532,183,32,assets/armor_pose_01,chainmail_skirt_01_shadow.png
+sh0003,shadow,347,405,123,112,assets/body_pose_01,body_frontarm_01_shadow.png
+sh0004,shadow,312,195,88,65,assets/body_pose_01,body_head_01_shadow.png
+sh0005,shadow,307,164,63,52,assets/platearmor_01,plate_helmet_01_trim_shdw.png
+sh0006,shadow,374,270,100,45,assets/platearmor_01,plate_fshoulder_01_shdw.png
+sh0007,shadow,242,212,75,90,assets/platearmor_01,plate_bshoulder_01_shdw.png
+sh0008,shadow,413,289,69,37,assets/platearmor_01,plate_fshoulder_01_trim2shdw.png
+sh0009,shadow,233,294,38,32,assets/platearmor_01,plate_bshoulder_01_trim2shdw.png
+sh0010,shadow,268,219,164,209,assets/platearmor_01,chestplate_shdw.png
+sh0011,shadow,238,440,211,108,assets/platearmor_01,steelskirtshdw.png
+sh0012,shadow,285,473,80,96,assets/platearmor_01,steelskirttrimshdw.png
+sh0013,shadow,298,428,288,217,assets/armor_pose_01,shieldshdw.png

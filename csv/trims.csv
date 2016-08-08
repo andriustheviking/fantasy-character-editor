@@ -1,11 +1,33 @@
 id,type,name,material,parentAsset,trimPlacement,layer,order,position,inheritColor,hue,sat,lum,removable,equipped,x,y,w,h,shadowId,location,filename
-tm00006,trim,Steel Helmet interior,steelplate,hm00020,body,tBelow,0,a,0,220,15,30,0,1,304,156,74,71,0,assets/platearmor_01,plate_helmet_01_interior.png
-tm00005,trim,Steel Helmet Trim,steelplate,hm00020,helmet,tOn,0,a,0,50,45,40,0,1,302,148,82,90,sh0005,assets/platearmor_01,plate_helmet_01_trim.png
-tm00004,trim,Mail Skirt Trim,chainmail,hm00009,pantsUnder,tOn,0,a,1,220,15,85,1,1,257,427,182,130,sh0002,assets/armor_pose_01,chainmail_skirt_01.png
-tm00003,trim,Front Shoulder Skin Trim,skin,hm00002,body,tOn,0,a,1,34,42,60,0,1,397,235,47,57,0,assets/body_pose_01,body_frontarm_01_shouldertrim.png
-tm00002,trim,Front Shoe Trim,leather,hm00013,fFootUnder,tAbove,0,a,1,28,50,50,0,1,396,610,72,56,0,assets/armor_pose_01,leather_frontfoottrim_01.png
 tm00001,trim,Back Shoe Trim,leather,hm00012,bFootUnder,tAbove,0,a,1,28,50,50,0,1,275,626,80,43,0,assets/armor_pose_01,leather_backfoottrim_01.png
+tm00002,trim,Front Shoe Trim,leather,hm00013,fFootUnder,tAbove,0,a,1,28,50,50,0,1,396,610,72,56,0,assets/armor_pose_01,leather_frontfoottrim_01.png
+tm00003,trim,Front Shoulder Skin Trim,skin,hm00002,body,tOn,0,a,1,34,42,60,0,1,397,235,47,57,0,assets/body_pose_01,body_frontarm_01_shouldertrim.png
+tm00004,trim,Mail Skirt Trim,chainmail,hm00009,pantsUnder,tOn,0,a,1,220,15,85,1,1,257,427,182,130,sh0002,assets/armor_pose_01,chainmail_skirt_01.png
+tm00005,trim,Steel Helmet Trim,steeltrim,hm00020,helmet,tOn,0,a,0,50,45,40,0,1,302,148,82,90,sh0005,assets/platearmor_01,plate_helmet_01_trim.png
+tm00006,trim,Steel Helmet interior,steeltrim,hm00020,body,tBelow,0,a,0,220,15,30,0,1,304,156,74,71,0,assets/platearmor_01,plate_helmet_01_interior.png
 tm00007,trim,Cloth Sleeve Front,cloth,hm00019,fArm,tAbove,0,a,1,50,20,85,1,1,404,237,84,198,0,assets/armor_pose_01,cloth_frontarm_01.png
 tm00008,trim,Cloth Sleeve Back,cloth,hm00019,bArm,tAbove,0,a,1,50,20,85,1,1,200,235,120,151,0,assets/armor_pose_01,cloth_backarm_01.png
 tm00009,trim,Mail Sleeve Front,chainmail,hm00009,fArm,tAbove,0,a,1,220,15,85,1,1,404,236,82,199,0,assets/armor_pose_01,chainmail_frontarm_01.png
 tm00010,trim,Mail Sleeve Back,chainmail,hm00009,bArm,tAbove,0,a,1,220,15,85,1,1,198,235,122,151,0,assets/armor_pose_01,chainmail_backarm_01.png
+tm00011,trim,Front Shoulder Plate Trim,steeltrim,hm00021,fShoulder,tBelow,1,a,0,50,45,40,0,1,377,204,100,96,sh0006,assets/platearmor_01,plate_fshoulder_01_trim.png
+tm00012,trim,Back Shoulder Plate Trim,steeltrim,hm00022,bShoulder,tBelow,1,a,0,50,45,40,0,1,242,214,69,79,sh0007,assets/platearmor_01,plate_bshoulder_01_trim.png
+tm00013,trim,Back Shoulder Plate Interior,steeltrim,hm00022,body,tBelow,0,a,0,50,45,30,0,1,296,214,28,46,0,assets/platearmor_01,plate_bshoulder_01_interior.png
+tm00014,trim,Fron Shoulder Plate Trim 2,steeltrim,hm00021,fShoulder,tBelow,0,a,0,50,45,40,1,1,414,270,69,48,sh0008,assets/platearmor_01,plate_fshoulder_01_trim2.png
+tm00015,trim,Back Shoulder Plate Trim 2,steeltrim,hm00022,bShoulder,tBelow,0,a,0,50,45,40,1,1,232,270,41,48,sh0009,assets/platearmor_01,plate_bshoulder_01_trim2.png
+tm00016,trim,Chestplate Trim,steeltrim,hm00023,chestArmor,tOn,0,a,0,50,45,40,0,1,274,217,155,205,0,assets/platearmor_01,chestplate_trim.png
+tm00017,trim,Front Bracer Trim,steeltrim,hm00024,fArmBracer,tOn,0,a,0,50,45,40,0,1,409,356,72,82,0,assets/platearmor_01,farmbracertrim.png
+tm00018,trim,Back Bracer Trim,steeltrim,hm00025,bArmBracer,tOn,0,a,0,50,45,40,0,1,196,331,57,58,0,assets/platearmor_01,barmbracer_trim.png
+tm00019,trim,Steel Belt Trim,steeltrim,hm00026,beltArmor,tOn,0,a,0,50,45,40,0,1,277,371,116,84,0,assets/platearmor_01,platebelt_trim.png
+tm00020,trim,Steel Belt Strap,leather,hm00026,beltArmor,tBelow,0,a,0,28,50,50,0,1,391,398,21,21,0,assets/platearmor_01,platebelt_strap.png
+tm00021,trim,Leather Belt Buckle,copper,hm00027,beltUnder,tOn,0,a,0,50,45,40,0,1,296,395,42,32,0,assets/armor_pose_01,leatherbeltbuckle.png
+tm00022,trim,Steel Skirt Trim,steeltrim,hm00028,skirtArmor,tOn,0,a,0,50,45,40,0,1,292,477,65,84,sh0012,assets/platearmor_01,plateskirt_trim.png
+tm00023,trim,Front Plate Shinguard Trim,steeltrim,hm00029,fShinArmor,tBelow,0,a,0,50,45,40,0,1,391,608,107,178,0,assets/platearmor_01,frontplateshinguardtrim.png
+tm00024,trim,Back Plate Shinguard Trim,steeltrim,hm00030,bShinArmor,tBelow,0,a,0,50,45,40,0,1,276,608,80,178,0,assets/platearmor_01,backplateshinguardtrim.png
+tm00025,trim,Front Plate Shinguard Leather,leather,hm00029,fShinArmor,tOn,0,a,0,28,50,50,0,1,460,623,26,106,0,assets/platearmor_01,frontplateshinguardstraps.png
+tm00026,trim,Back Plate Shinguard Leather,leather,hm00030,bShinArmor,tOn,0,a,0,28,50,50,0,1,330,630,25,108,0,assets/platearmor_01,backplateshinguardstraps.png
+tm00027,trim,Back Plate Shinguard Buckles,copper,hm00030,bShinArmor,tOn,1,a,0,50,45,40,0,1,326,632,15,108,0,assets/platearmor_01,backplateshinguardbuckles.png
+tm00028,trim,Front Plate Shinguard Buckles,copper,hm00029,fShinArmor,tOn,1,a,0,50,45,40,0,1,457,624,26,109,0,assets/platearmor_01,frontplateshinguardbuckles.png
+tm00029,trim,Eyes,eyes,hm00003,face,tOn,0,a,0,50,20,80,0,1,312,176,43,7,0,assets/body_pose_01,eyes.png
+tm00030,trim,Pupils,eyes,hm00003,face,tOn,1,a,0,50,20,20,0,1,318,175,36,8,0,assets/body_pose_01,pupils.png
+tm00031,trim,Wood Shield Trim,steeltrim,hm00033,fShield,tOn,0,a,0,220,15,50,0,1,307,307,266,303,0,assets/armor_pose_01,shieldtrim.png
+tm00032,trim,Wood Shield Cross,steeltrim,hm00033,fShield,tOn,1,a,0,50,53,19,0,1,307,307,266,303,0,assets/armor_pose_01,shieldcross.png

@@ -1,32 +1,37 @@
 id,name,order,parent
 body,Body,0,root
 face,Face,0,head
-eyes,Eyes,1,head
-helmet,Helmet,2,head
-hood,Hood,3,head
+beard,Bears,1,head
+mustache,Mustache,2,head
+helmet,Helmet,3,head
+hood,Hood,4,head
 fArmUnder,Front Arm Under Armor,0,fArm
 fHandUnder,Front Hand Under Armor,1,fArm
 fArmUpperArmor,Front Upperarm Outer Armor,2,fArm
 fArmBracer,Front Arm Bracer,3,fArm
 fShoulder,Front Shoulder Pad,4,fArm
 fHandArmor,Front Hand Outer Armor,5,fArm
+fShield,Front Arm Shield,6,fArm
 bArm,Back Arm,-1,body
 pantsUnder,Pants,0,body
 skirtUnder,Skirt Under Armor,1,body
 chestUnder,Chest Under Armor,2,body
-bFootUnder,Back Foot Under Armor,3,body
-fFootUnder,Front Foot Under Armor,4,body
-pantsArmor,Leg Armor,5,body
-bFootArmor,Back Foot Outer Armor,6,body
-fFootArmor,Front Foot Outer Armor,7,body
-bShinArmor,Back Shin Guard,8,body
-fShinArmor,Front Shin Guard,9,body
-skirtArmor,Skirt Outer Armor,10,body
-chestArmor,Chest Outer Armor,11,body
-bShoulder,Back Shoulder Pad,12,body
-head,Head,13,body
-fArm,Front Arm,14,body
-bHand,Back Hand,15,body
+beltUnder,Belt Under,3,body
+bFootUnder,Back Foot Under Armor,4,body
+fFootUnder,Front Foot Under Armor,5,body
+pantsArmor,Leg Armor,6,body
+bFootArmor,Back Foot Outer Armor,7,body
+fFootArmor,Front Foot Outer Armor,8,body
+bShinArmor,Back Shin Guard,9,body
+fShinArmor,Front Shin Guard,10,body
+skirtArmor,Skirt Outer Armor,11,body
+chestArmor,Chest Outer Armor,12,body
+beltArmor,Belt Outer Armor,13,body
+bShoulder,Back Shoulder Pad,14,body
+head,Head,15,body
+fArm,Front Arm,16,body
+bWeapon,Back Hand Weapon,17,body
+bHand,Back Hand,18,body
 bHandUnder,Back Hand Under Armor,0,bHand
 bHandArmor,Back Hand Outer Armor,1,bHand
 bArmUnder,Back Arm Under Armor,0,bArm

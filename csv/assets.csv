@@ -7,9 +7,23 @@ hm00005,asset,Head,skin,head,0,0,a,34,42,60,0,1,306,121,80,105,sh0004,assets/bod
 hm00006,asset,Back Hand,skin,bHand,0,0,a,34,42,60,0,1,153,331,61,67,0,assets/body_pose_01,body_back_hand_01.png
 hm00007,asset,Back Arm,skin,bArm,0,0,a,34,42,60,0,1,188,233,135,155,0,assets/body_pose_01,body_back_arm_01.png
 hm00009,asset,Mail Shirt,chainmail,chestUnder,0,0,a,220,15,85,1,1,276,219,161,231,sh0001,assets/armor_pose_01,chainmail_chest_01.png
-hm00012,asset,Back Shoe Leather,leather,bFootUnder,1,hm00013,a,28,53,40,1,1,207,635,146,197,0,assets/armor_pose_01,leather_backfoot_01.png
-hm00013,asset,Front Shoe Leather,leather,fFootUnder,1,hm00012,a,28,53,40,1,1,401,618,102,218,0,assets/armor_pose_01,leather_frontfoot_01.png
+hm00012,asset,Back Shoe Leather,leather,bFootUnder,0,hm00013,a,28,53,40,1,1,207,635,146,197,0,assets/armor_pose_01,leather_backfoot_01.png
+hm00013,asset,Front Shoe Leather,leather,fFootUnder,0,hm00012,a,28,53,40,1,1,401,618,102,218,0,assets/armor_pose_01,leather_frontfoot_01.png
 hm00016,asset,Cloth Pants,cloth,pantsUnder,0,0,a,50,20,85,1,1,259,411,229,373,0,assets/armor_pose_01,cloth_pants_01.png
 hm00019,asset,Cloth Shirt,cloth,chestUnder,0,0,a,50,20,85,1,0,276,219,161,231,0,assets/armor_pose_01,cloth_chest_01.png
-hm00020,asset,Steel Plate Helmet,steelplate,helmet,0,0,a,220,15,50,1,1,302,114,85,118,0,assets/platearmor_01,plate_helmet_01.png
-hm00021,asset,Steel Shoulderpad Front,steelplate,fShoulder,0,0,a,220,15,50,1,1,389,220,78,73,,assets/platearmor_01,plate_fshoulder_01.png
+hm00020,asset,Steel Plate Helmet,steelplate,helmet,0,0,a,220,50,30,1,1,302,114,85,118,0,assets/platearmor_01,plate_helmet_01.png
+hm00021,asset,Steel Shoulderpad Front,steelplate,fShoulder,1,hm00022,a,220,50,30,1,1,389,220,78,73,0,assets/platearmor_01,plate_fshoulder_01.png
+hm00022,asset,Steel Shoulderpad Back,steelplate,bShoulder,1,hm00021,a,220,50,30,1,1,252,230,45,56,0,assets/platearmor_01,plate_bshoulder_01.png
+hm00023,asset,Steel Chest Plate,steelplate,chestArmor,0,0,a,220,50,30,1,1,273,217,156,203,sh0010,assets/platearmor_01,chestplate.png
+hm00024,asset,Front Arm Bracer,steelplate,fArmBracer,1,hm00025,a,220,50,30,1,1,413,360,62,64,0,assets/platearmor_01,farmbracer.png
+hm00025,asset,Back Arm Bracer,steelplate,bArmBracer,1,hm00024,a,220,50,30,1,1,204,332,39,57,0,assets/platearmor_01,barmbracer.png
+hm00026,asset,Steel Plate Belt,steelplate,beltArmor,0,0,a,220,50,30,1,1,283,380,102,64,0,assets/platearmor_01,platebelt.png
+hm00027,asset,Leather Belt,leather,beltUnder,0,0,a,28,53,40,1,1,277,398,135,26,0,assets/armor_pose_01,leatherbelt.png
+hm00028,asset,Steel Plate Skirt,steelplate,skirtArmor,0,0,a,220,50,30,1,1,241,414,204,127,sh0011,assets/platearmor_01,plateskirt.png
+hm00029,asset,Plate Shin Guard Front,steelplate,fShinArmor,1,hm00030,a,220,50,30,1,1,398,607,76,157,0,assets/platearmor_01,frontplateshinguard.png
+hm00030,asset,Plate Shin Guard Back,steelplate,bShinArmor,1,hm00029,a,220,50,30,1,1,274,602,69,163,0,assets/platearmor_01,backplateshinguard.png
+hm00031,asset,Back Shoe Plate,steelplate,bFootUnder,1,hm00032,a,220,50,30,1,1,202,756,146,76,0,assets/platearmor_01,plate_backfoot_01.png
+hm00032,asset,Front Shoe Plate,steelplate,fFootUnder,1,hm00031,a,220,50,30,1,1,421,756,82,81,0,assets/platearmor_01,plate_frontfoot_01.png
+hm00033,asset,Wooden Shield,wood,fShield,0,0,a,28,42,20,1,1,307,307,266,303,sh0013,assets/armor_pose_01,shield.png
+hm00034,asset,Axe,iron,bWeapon,0,0,a,220,15,50,1,0,51,97,219,638,0,assets/barbarian_01,axe.png
+hm00035,asset,Sword,steel,bWeapon,0,0,a,220,15,50,1,1,130,67,104,339,0,assets/armor_pose_01,sword.png
